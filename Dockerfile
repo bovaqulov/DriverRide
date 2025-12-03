@@ -1,5 +1,3 @@
-FROM ubuntu:latest
-LABEL authors="muhammadali"
 
 FROM python:3.10-slim
 
