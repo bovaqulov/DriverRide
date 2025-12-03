@@ -1,0 +1,38 @@
+{
+  'id': 39,
+  'user': 7701856550,
+  'creator': {
+    'id': 1,
+    'telegram_id': 7701856550,
+    'full_name': 'Muhammad Ali',
+    'total_rides': 0,
+    'phone': '998330667370',
+    'rating': 5,
+    'created_at': '2025-11-30 20:48:46',
+    'updated_at': '2025-11-30 22:45:15'
+  },
+  'driver': None,
+  'driver_details': None,
+  'status': 'created',
+  'order_type': 'travel',
+  'content_object': {
+    'type': 'passengertravel',
+    'id': 34,
+    'from_location': {
+      'city': 'qoqon',
+      'location': None
+    },
+    'to_location': {
+      'city': 'tashkent',
+      'location': None
+    },
+    'travel_class': 'economy',
+    'passenger': 1,
+    'has_woman': True,
+    'price': 123000,
+    'created_at': '2025-12-01T09:04:50.393777Z'
+  },
+  'content_type_name': 'passengertravel',
+  'created_at': '2025-12-01 09:04:50',
+  'updated_at': '2025-12-01 09:04:50'
+}

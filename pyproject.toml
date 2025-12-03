@@ -1,0 +1,10 @@
+[project]
+name = "driver-bot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pydantic-settings>=2.12.0",
+    "redis>=7.1.0",
+]
