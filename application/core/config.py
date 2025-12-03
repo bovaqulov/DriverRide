@@ -78,12 +78,12 @@ class Settings(BaseSettings):
     @property
     def HOST(self):
         """Get host based on DEBUG mode"""
-        return self.HOST_DEMO if self.DEBUG else self.HOST_PROD
+        return self.HOST_DEMO
 
     @property
     def PORT(self):
         """Get port based on DEBUG mode"""
-        return self.PORT_DEMO if self.DEBUG else self.PORT_PROD
+        return self.PORT_DEMO
 
     @property
     def MAIN_URL(self):
