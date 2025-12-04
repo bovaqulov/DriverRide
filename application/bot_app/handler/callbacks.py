@@ -28,6 +28,7 @@ async def offline_callback(
 async def online_callback(
         call: types.CallbackQuery, state: StateContext
 ):
+
     return await main_menu(call, state, status="offline")
 
 

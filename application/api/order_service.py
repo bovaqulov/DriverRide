@@ -232,7 +232,7 @@ class OrderResponse:
             "status": "online",
             "min_amount": 15_000,
             "ordering": "-amount",
-            "exclude_busy": True,
+            "exclude_busy": "true",
         }
 
         if order.content_object.travel_class and order.content_object.travel_class != 'all':
@@ -240,7 +240,7 @@ class OrderResponse:
 
         try:
             response = await self.driver_api.list_drivers(params)
-            return response.get("results", [])
+            return response.get("results", {})
         except Exception as e:
             print(f"Error finding drivers: {e}")
             return []
