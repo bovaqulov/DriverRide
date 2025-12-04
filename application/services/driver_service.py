@@ -27,7 +27,7 @@ class DriverServiceAPI(BaseService):
     async def get_driver_by_telegram_id(self, telegram_id: int) -> Optional[DriverService]:
         """Get driver by telegram ID"""
         try:
-            data = await self._request('GET', '/drivers/by_telegram_id/', params={'telegram_id': telegram_id})
+            data = await self._request('GET', f'/drivers/by_telegram_id/{telegram_id}/',)
 
             if 'error' in data:
                 logger.warning(f"Error getting driver by telegram_id {telegram_id}: {data['error']}")
