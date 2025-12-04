@@ -11,7 +11,9 @@ from ..handler.functions import main_menu
 async def start_handler(
         msg: Union[types.Message, types.CallbackQuery],
         state: StateContext):
-
-    return await main_menu(msg, state, send=True)
+    try:
+        return await main_menu(msg, state, send=True)
+    except Exception as e:
+        print(e)
 
 
