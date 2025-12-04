@@ -125,12 +125,12 @@ class DriverServiceAPI(BaseService):
 
             if 'error' in data:
                 logger.warning(f"Error listing drivers: {data['error']}")
-                return []
+                return {}
 
             return data
         except Exception as e:
             logger.error(f"Error listing drivers: {str(e)}")
-            return []
+            return {}
 
 
     # Car methods
