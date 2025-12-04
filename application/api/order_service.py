@@ -1,10 +1,9 @@
 import json
 import asyncio
-from typing import List, Optional
+from typing import List
 from dataclasses import dataclass
-from concurrent.futures import ThreadPoolExecutor
 
-from .api_types import OrderTypes, DriversResponse, OrderStatus
+from .api_types import OrderTypes, OrderStatus
 from ..bot_app.keyboards.inline import confirm_order_inl, finish_inl
 from ..core.i18n import t
 from ..core.bot import bot
@@ -232,7 +231,8 @@ class OrderResponse:
             "to_location": order.to_city,
             "status": "online",
             "min_amount": 15_000,
-            "ordering": "-amount"
+            "ordering": "-amount",
+            "exclude_busy": True,
         }
 
         if order.content_object.travel_class and order.content_object.travel_class != 'all':
