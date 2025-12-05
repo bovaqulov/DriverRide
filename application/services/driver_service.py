@@ -310,7 +310,7 @@ class DriverServiceAPI(BaseService):
 
     async def separation_amount(self, telegram_id):
         driver = await self.get_driver_by_telegram_id(telegram_id)
-        return self._request(
+        return await self._request(
             "PATCH",
             f"/drivers/{driver.id}/separation_amount",
         )

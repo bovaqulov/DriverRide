@@ -113,7 +113,6 @@ async def accept_order_callback(
             order = await order_api.get(int(order_id))
             order_info = OrderTypes.from_dict(order)
 
-
             text = _create_message_text(lang, order_info, use_phone=order_info.creator.phone)
 
             if order_info.status == "created" and order_info.driver is None:
