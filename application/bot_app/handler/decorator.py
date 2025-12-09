@@ -11,6 +11,7 @@ from ...core.config import settings
 from ...core.i18n import t
 from ...core.log import logger
 from ...services import TelegramUser
+from ...services.driver_service import DriverServiceAPI
 from ...services.user_service import UserService
 
 # Admin IDs - environment variables dan olish kerak
@@ -28,6 +29,11 @@ class BotStates(StatesGroup):
 
 class BalanceState(StatesGroup):
     upload: State = State()
+
+
+class BotNumber(StatesGroup):
+    contact: State = State()
+    confirm_code: State = State()
 
 # ==================== PERFORMANCE DECORATORS ====================
 
@@ -118,6 +124,15 @@ class UltraHandler:
             self._user_cache = await TelegramUser().get_user(self.user_id)
         return self._user_cache
 
+    async def get_driver(self) -> Optional[DriverServiceAPI]:
+        """Get passenger or return None if not exists"""
+        try:
+            driver_api = DriverServiceAPI()
+            return await driver_api.get_driver_by_telegram_id(self.user_id)
+        except Exception as e:
+            logger.error(f"Error getting passenger: {e}")
+            return None
+
     async def lang(self) -> str:
         if not self._lang_cache:
             user = await self.get_user()
@@ -182,12 +197,16 @@ class UltraHandler:
     ) -> Optional[Message]:
         final_text = await self._(text, **kwargs) if translate else text
         message_id = self._get_message_id()
-        return await bot.edit_message_text(
-            final_text,
-            self.chat_id,
-            message_id,
-            reply_markup=reply_markup
-        )
+        try:
+            return await bot.edit_message_text(
+                final_text,
+                self.chat_id,
+                message_id,
+                reply_markup=reply_markup
+            )
+        except Exception as e:
+            logger.error(f"Error editing message: {e}")
+            return None
 
     @error_handler(send_to_user=False)
     async def invoice(
@@ -195,6 +214,7 @@ class UltraHandler:
             text: str,
             description: str,
             prices: int,
+            payload: str,
             reply_markup = None
     ):
 
@@ -204,7 +224,7 @@ class UltraHandler:
             self.chat_id,
             await self._(text),
             await self._(description),
-            "Driver payload",
+            payload,
             currency="UZS",
             prices=price,
             provider_token=settings.BOT_PAYMENT_TOKEN,

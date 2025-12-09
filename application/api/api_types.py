@@ -20,6 +20,7 @@ class CarsTypes:
     car_number: str
     car_model: str
     car_color: str
+    car_class: str
 
 
 @dataclass
@@ -57,6 +58,8 @@ class DriverDetailsTypes:
     amount: float
     cars: List[CarsTypes] = field(default_factory=list)
     status_display: str = ""
+    profile_image: str = ""
+    full_profile_image_url: str = ""
 
 
 @dataclass

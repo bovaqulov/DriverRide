@@ -14,6 +14,7 @@ from .decorator import (
 )
 
 # Import all handler modules
+from .payment import *
 from .middlewares import *
 from .states import *
 from .commands import *

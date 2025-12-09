@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
 
@@ -22,8 +22,8 @@ class UserService:
 class DriverService:
     id: Optional[int] = None
     telegram_id: Optional[int] = None
-    from_location: str = ''
-    to_location: str = ''
+    from_location: str = ""
+    to_location: str = ""
     status: str = 'online'
     amount: float = 0.0
 

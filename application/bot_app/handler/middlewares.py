@@ -93,27 +93,6 @@ class AllInOneMiddleware(BaseMiddleware):
         try:
             user_id = message.from_user.id
 
-            # Auth check
-            user = await TelegramUser().get_user(user_id)
-
-            if user is None:
-                obj = TelegramUser()
-
-                await obj.create_user(
-                    {
-                        "telegram_id": user_id,
-                        "full_name": message.from_user.full_name,
-                        "username": message.from_user.username,
-                    }
-
-                )
-
-            user = await TelegramUser().get_user(user_id)
-
-            if not user.is_active:
-                await bot.send_message(message.chat.id, "🚫 Account blocked.")
-                return False
-
             # Ban check
             if await TelegramUser().is_ban_user(user_id):
                 await bot.send_message(message.chat.id, "🚫 You are banned.")

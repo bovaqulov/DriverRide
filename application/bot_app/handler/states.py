@@ -33,5 +33,6 @@ async def balance_state_upload(call, state: StateContext):
         "top_up_title",
         "balance_notice",
         prices=amount * 100,
+        payload = f"driver:{call.from_user.id}:amount:{amount}",
         reply_markup=payment_inl(lang)
     )

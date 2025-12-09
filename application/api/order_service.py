@@ -154,36 +154,56 @@ class OrderResponse:
         """Asosiy control funksiyasi"""
         try:
             order: OrderTypes = await self._order()
+            if order.status == OrderStatus.CREATED.value:
+                # Queue ishlashini ta'minlash
+                await self._ensure_queue_started()
 
+                # Driverlarni topish
+                drivers = await self._find_matching_drivers(order)
+                print(f"Found {len(drivers)} drivers for order {order.id}")
 
-            if order.content_object.type == "passengertravel":
-                if order.status == OrderStatus.CREATED.value:
-                    # Queue ishlashini ta'minlash
-                    await self._ensure_queue_started()
+                # Message larni queue ga qo'shish
+                for driver in drivers:
+                    await self._passenger_create(driver, order)
 
-                    # Driverlarni topish
-                    drivers = await self._find_matching_drivers(order)
-                    print(f"Found {len(drivers)} drivers for order {order.id}")
-
-                    # Message larni queue ga qo'shish
-                    for driver in drivers:
-                        await self._passenger_travel_create(driver, order)
-
-                if order.status == OrderStatus.STARTED.value:
-                    await self._ensure_queue_started()
-                    lang = await TelegramUser().get_lang(order.driver_details.telegram_id)
-                    return await bot.send_message(
-                        order.driver_details.telegram_id,
-                        t("safe_trip", lang),
-                        reply_markup=finish_inl(lang, order.id)
-                    )
+            if order.status == OrderStatus.STARTED.value:
+                await self._ensure_queue_started()
+                lang = await TelegramUser().get_lang(order.driver_details.telegram_id)
+                return await bot.send_message(
+                    order.driver_details.telegram_id,
+                    t("safe_trip", lang),
+                    reply_markup=finish_inl(lang, order.id)
+                )
 
 
 
         except Exception as e:
             print(f"Error in OrderResponse.control: {e}")
 
-    async def _passenger_travel_create(self, driver: dict, order: OrderTypes):
+    def _create_travel_message(self, order, lang):
+        gender_icon = "👩" if order.content_object.has_woman else "👤"
+        woman_note = t("woman_passenger_note", lang) if order.content_object.has_woman else ""
+
+        text = t("new_trip_request", lang,
+                 travel_id=order.id,
+                 from_city=order.from_city.title(),
+                 to_city=order.to_city.title(),
+                 gender_icon=gender_icon,
+                 passenger=order.content_object.passenger,
+                 woman_note=woman_note,
+                 price=order.content_object.price)
+        return text
+
+    def _create_delivery_message(self, order, lang):
+        text = t("new_delivery_request", lang,
+                 travel_id=order.id,
+                 from_city=order.from_city.title(),
+                 to_city=order.to_city.title(),
+                 price=order.content_object.price)
+
+        return text
+
+    async def _passenger_create(self, driver: dict, order: OrderTypes):
         """Message tayyorlash va queue ga qo'shish"""
         try:
             driver_info = driver.get("driver_info", {})
@@ -196,20 +216,13 @@ class OrderResponse:
             lang = driver_info.get("language", "uz")
 
             # Text tayyorlash
-            gender_icon = "👩" if order.content_object.has_woman else "👤"
-            woman_note = t("woman_passenger_note", lang) if order.content_object.has_woman else ""
+            if order.content_type_name == "passengerpost":
+                text = self._create_delivery_message(order, lang)
+                reply_markup = confirm_order_inl(lang, order.id, travel=False)
+            else:
+                text = self._create_travel_message(order, lang)
+                reply_markup = confirm_order_inl(lang, order.id)
 
-            text = t("new_trip_request", lang,
-                     travel_id=order.id,
-                     from_city=order.from_city.title(),
-                     to_city=order.to_city.title(),
-                     gender_icon=gender_icon,
-                     passenger=order.content_object.passenger,
-                     woman_note=woman_note,
-                     price=order.content_object.price)
-
-            # Inline keyboard tayyorlash
-            reply_markup = confirm_order_inl(lang, order.id)
 
             # Queue ga qo'shish
             message_task = MessageTask(
@@ -230,7 +243,7 @@ class OrderResponse:
             "from_location": order.from_city,
             "to_location": order.to_city,
             "status": "online",
-            "min_amount": 15_000,
+            "min_amount": int(int(order.content_object.price) * 0.05),
             "ordering": "-amount",
             "exclude_busy": "true",
         }

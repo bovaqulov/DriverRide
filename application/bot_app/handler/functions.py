@@ -4,11 +4,10 @@ from telebot import types
 from telebot.states.asyncio import StateContext
 
 from ..handler import UltraHandler
-from ..keyboards.inline import main_menu_inl, register_driver_inl
+from ..keyboards.inline import main_menu_inl, register_driver_inl, balance_inl
 from ...core import t
 from ...services.driver_service import DriverServiceAPI
 from ...services.types import DriverService, UserService
-
 
 
 async def main_menu(
@@ -23,12 +22,24 @@ async def main_menu(
     user: UserService = await h.get_user()
     driver_api = DriverServiceAPI()
 
-    driver: Union[DriverService] = await driver_api.get_driver_by_telegram_id(msg.from_user.id)
+    driver: Union[DriverService] = await h.get_driver()
 
     if not driver:
         return await h.send(
             "not_driver",
             reply_markup=register_driver_inl(lang))
+
+    if 15000 > driver.amount:
+        await driver_api.update_driver(driver.id, {"status": "offline"})
+        if isinstance(msg, types.Message):
+            func = h.send
+        else:
+            func = h.edit
+
+        return await func(
+            "minimum_balance_required",
+            reply_markup=balance_inl(lang, balance=False)
+        )
 
     if status:
         await driver_api.update_driver(driver.id, {"status": status})
@@ -48,7 +59,5 @@ async def main_menu(
         balance=f"{driver.amount:,}",
         rating=user.rating,
         status=t(driver_status, lang),
-        direction=f'{t(driver.from_location, lang)} -> {t(driver.to_location, lang)}'
+        direction=f"{driver.from_location.title()} -> {driver.to_location.title()}",
     )
-
-

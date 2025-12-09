@@ -99,10 +99,7 @@ class Settings(BaseSettings):
     @property
     def BOT_PAYMENT_TOKEN(self):
         """Get bot payment token based on DEBUG mode"""
-        if self.DEBUG:
-            return self.BOT_PAYMENT_TOKEN_DEMO
-        else:
-            return self.BOT_PAYMENT_TOKEN_PROD
+        return self.BOT_PAYMENT_TOKEN_PROD
 
     model_config = SettingsConfigDict(
         env_file=".env",

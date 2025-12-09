@@ -11,10 +11,11 @@ def main_menu_inl(lang, status="online"):
     keyword.data("help", "help")
     return keyword.inline()
 
-def balance_inl(lang):
+def balance_inl(lang, balance=True):
     keyword = kb(lang)
     keyword.data("top_up_balance", "top_up_balance").row()
-    keyword.data("back", "back").row()
+    if balance:
+        keyword.data("back", "back").row()
     return keyword.inline()
 
 
@@ -72,7 +73,13 @@ def picked_up_inl(lang, order_id):
     keyword.data("picked_up", f"picked_{order_id}").row()
     return keyword.inline()
 
+
 def finish_inl(lang, order_id):
     keyword = kb(lang)
     keyword.data("finish", f"finished_{order_id}").row()
     return keyword.inline()
+
+def phone_number_rb(lang: str):
+    keyboard = kb(lang)
+    keyboard.contact("get_phone_number")
+    return keyboard.reply()
