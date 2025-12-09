@@ -71,8 +71,6 @@ async def set_webhook(request: Request):
     except Exception as e:
         return {"status": "error", "error": str(e)}
 
-
-
 @router.post("/driver")
 async def travel_started(request: Request):
     return await OrderResponse(request).control()

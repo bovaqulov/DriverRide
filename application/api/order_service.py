@@ -249,7 +249,8 @@ class OrderResponse:
         }
 
         if order.content_object.travel_class and order.content_object.travel_class != 'all':
-            params["car_class"] = order.content_object.travel_class
+            if order.content_object.travel_class == "economy":
+                params['car_class'] = "economy"
 
         try:
             response = await self.driver_api.list_drivers(params)
