@@ -249,4 +249,11 @@ async def direction_callback(call: types.CallbackQuery, state: StateContext):
     except Exception as e:
         print(e)
 
-
+@cb("help")
+async def help_callback(call: types.CallbackQuery, state: StateContext):
+    h = UltraHandler(call, state)
+    lang = await h.lang()
+    return await h.edit(
+        "contact_info",
+        reply_markup=back_inl(lang)
+    )
