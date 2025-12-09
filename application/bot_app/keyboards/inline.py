@@ -43,7 +43,7 @@ def payment_inl(lang):
 def settings_inl(lang):
     keyword = kb(lang)
     keyword.data("direction", "direction").row()
-    keyword.data("phone_number", "phone_number").row()
+    # keyword.data("phone_number", "phone_number").row()
     keyword.data("back", "back").row()
     return keyword.inline()
 

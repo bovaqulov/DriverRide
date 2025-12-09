@@ -24,7 +24,7 @@
   "payment_success_invalid_payload": "✅ Payment was successfully completed!\n\n⚠️ Invalid payment data. Please contact the administrator.",
   "payment_error": "❌ An error occurred while processing your payment. Please contact the administrator.",
   "change_direction": "Direction changed.",
-  "direction": "🛣 Direction",
+  "direction": "🛣 Change direction",
   "online": "🟢 Online",
   "offline": "🔴 Offline",
   "balance": "💰 Balance",

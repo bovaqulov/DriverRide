@@ -24,7 +24,7 @@
   "payment_success_invalid_payload": "✅ To'lov muvaffaqiyatli amalga oshirildi!\n\n⚠️ To'lov ma'lumotlarida xatolik. Administrator bilan bog'laning.",
   "payment_error": "❌ To'lovni qayta ishlashda xatolik yuz berdi. Iltimos, administrator bilan bog'laning.",
   "change_direction": "Yo'nalish o'zgartirildi.",
-  "direction": "🛣 Yo‘nalish",
+  "direction": "🛣 Yo'nlalishni o'zgartirish",
   "online": "🟢 Onlayn",
   "offline": "🔴 Offline",
   "balance": "💰 Balans",
