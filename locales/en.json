@@ -48,6 +48,8 @@
   "safe_trip": "🚗 Have a safe trip!",
   "finish": "✅ Finish",
   "great": "✨ Great",
+  "cancel": "❌ Cancel",
+
   "forget_notify": "📩 Don't forget to notify us when the trip is finished",
   "contact_info": "For contact: +998 78-113-71-73",
   "errors": {

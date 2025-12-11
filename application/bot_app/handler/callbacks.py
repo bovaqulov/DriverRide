@@ -257,3 +257,8 @@ async def help_callback(call: types.CallbackQuery, state: StateContext):
         "contact_info",
         reply_markup=back_inl(lang)
     )
+
+@cb("cancel")
+async def cancel_callback(call: types.CallbackQuery, state: StateContext):
+    h = UltraHandler(call, state)
+    await h.delete()

@@ -50,7 +50,8 @@ def settings_inl(lang):
 def confirm_order_inl(lang, order_id, travel=True):
     keyword = kb(lang)
     order_type = "travel" if travel else "delivery"
-    keyword.data("accept_button", f"accept_{order_type}_{order_id}").row()
+    keyword.data("accept_button", f"accept_{order_type}_{order_id}")
+    keyword.data("cancel", "cancel")
     return keyword.inline()
 
 def chat_inl(lang, order_id):
