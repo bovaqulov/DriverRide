@@ -121,9 +121,7 @@ async def accept_order_callback(
             assigned = await order_api.add_new_driver(order_id, call.from_user.id)
 
             if assigned.get("status") == "assigned":
-                if location := order_info.content_object.from_location.get("location", None):
-
-
+                if (location := order_info.content_object.from_location.get("location", {})).get("latitude", None):
                     await h.location(
                         location.get("latitude"),
                         location.get("longitude")
