@@ -68,6 +68,10 @@ def back_inl(lang):
     keyword.data("back", "back").row()
     return keyword.inline()
 
+def delete_inl(lang):
+    keyword = kb(lang)
+    keyword.data("delete", "delete").row()
+    return keyword.inline()
 
 def picked_up_inl(lang, order_id):
     keyword = kb(lang)

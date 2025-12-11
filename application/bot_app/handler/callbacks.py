@@ -7,7 +7,7 @@ from telebot.states.asyncio import StateContext
 from ..handler.functions import main_menu
 from ..handler.decorator import cb, UltraHandler, BalanceState
 from ..keyboards.inline import balance_inl, choice_balance_inl, settings_inl, chat_inl, back_inl, picked_up_inl, \
-    finish_inl
+    finish_inl, delete_inl
 from ...api.api_types import OrderTypes
 
 from ...core.i18n import t
@@ -121,14 +121,15 @@ async def accept_order_callback(
             assigned = await order_api.add_new_driver(order_id, call.from_user.id)
 
             if assigned.get("status") == "assigned":
-                if (location := order_info.content_object.from_location.get("location", {})).get("latitude", None):
+                location = order_info.content_object.from_location.get("location", {})
+                if location.get("latitude", None) and location.get("longitude", None):
                     await h.location(
                         location.get("latitude"),
                         location.get("longitude")
                     )
                 return await h.edit(text, reply_markup=chat_inl(lang, order_id))
 
-        return await h.edit("order_taken_by_other", reply_markup=back_inl(lang))
+        return await h.edit("order_taken_by_other", reply_markup=delete_inl(lang))
     except Exception as e:
         print(e)
 
@@ -258,5 +259,10 @@ async def help_callback(call: types.CallbackQuery, state: StateContext):
 
 @cb("cancel")
 async def cancel_callback(call: types.CallbackQuery, state: StateContext):
+    h = UltraHandler(call, state)
+    await h.delete()
+
+@cb("delete")
+async def delete_callback(call: types.CallbackQuery, state: StateContext):
     h = UltraHandler(call, state)
     await h.delete()
