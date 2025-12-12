@@ -32,3 +32,13 @@ class OrderServiceAPI(BaseService):
             )
         except Exception as e:
             print("Misatke is me: ", e)
+
+    async def get_active_orders(self, data):
+        try:
+            return await self._request(
+                "GET",
+                "/orders",
+                data=data,
+            )
+        except Exception as e:
+            print("Misatke is me: ", e)

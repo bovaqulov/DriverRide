@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import Optional, List, Dict, Any
 from datetime import datetime
+from typing import List, Optional, Dict, Any
+from enum import Enum
+
 
 @dataclass
 class PassengerTypes:
@@ -10,8 +11,8 @@ class PassengerTypes:
     language: str
     full_name: str
     total_rides: int
-    phone: str
-    rating: float
+    phone: str = None
+    rating: float = None
 
 
 @dataclass
@@ -210,13 +211,6 @@ class OrderTypes:
             return OrderStatus(self.status)
         except ValueError:
             return OrderStatus.CREATED
-
-
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import List, Optional, Dict, Any
-from enum import Enum
-
 
 @dataclass
 class DriverInfo:

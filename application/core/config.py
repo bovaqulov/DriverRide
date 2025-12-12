@@ -92,7 +92,6 @@ class Settings(BaseSettings):
             url = f"http://{self.API_HOST}:{self.API_PORT}"
         else:
             url = f"https://{self.API_HOST_PROD}"
-
         return url
 
 

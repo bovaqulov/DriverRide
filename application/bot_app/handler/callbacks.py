@@ -1,6 +1,4 @@
 import time
-from dataclasses import asdict
-
 from telebot import types
 from telebot.states.asyncio import StateContext
 
@@ -122,11 +120,12 @@ async def accept_order_callback(
 
             if assigned.get("status") == "assigned":
                 location = order_info.content_object.from_location.get("location", {})
-                if location.get("latitude", None) and location.get("longitude", None):
-                    await h.location(
-                        location.get("latitude"),
-                        location.get("longitude")
-                    )
+                if location:
+                    if location.get("latitude", None) and location.get("longitude", None):
+                        await h.location(
+                            location.get("latitude"),
+                            location.get("longitude")
+                        )
                 return await h.edit(text, reply_markup=chat_inl(lang, order_id))
 
         return await h.edit("order_taken_by_other", reply_markup=delete_inl(lang))
@@ -248,6 +247,7 @@ async def direction_callback(call: types.CallbackQuery, state: StateContext):
     except Exception as e:
         print(e)
 
+
 @cb("help")
 async def help_callback(call: types.CallbackQuery, state: StateContext):
     h = UltraHandler(call, state)
@@ -266,3 +266,44 @@ async def cancel_callback(call: types.CallbackQuery, state: StateContext):
 async def delete_callback(call: types.CallbackQuery, state: StateContext):
     h = UltraHandler(call, state)
     await h.delete()
+
+# def create_active_order(orders, lang) -> str:
+#     print(orders)
+#     for order in orders.get("results", []):
+#
+#         order_price = t("order_price", lang, order_price=order.get("price", 0))
+#         order_type = t("order_type", lang, order_type=order.get("order_type", ""))
+#         if order.get("order_type", "") != "delivery":
+#             order_passenger = t("order_passenger", lang, )
+#
+#     return ""
+#
+# @cb("active_orders")
+# async def active_orders_callback(call: types.CallbackQuery, state: StateContext):
+#     h = UltraHandler(call, state)
+#     lang = await h.lang()
+#     driver = await h.get_driver()
+#     order_api = OrderServiceAPI()
+#     orders = await order_api.get_active_orders(
+#         {
+#             "from_location": driver.from_location,
+#             "to_location": driver.to_location,
+#             "status": "created",
+#             'travel_class': driver.car_class,
+#         }
+#     )
+#
+#     order_count = orders.get("count", 0)
+#
+#     if order_count == 0 or order_count < 0:
+#         return await h.answer("no_active_orders")
+#
+#     text = create_active_order(orders, lang)
+#
+#     return await h.send(
+#         text,
+#         translate=True,
+#
+#     )
+#
+#

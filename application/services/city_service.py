@@ -20,7 +20,6 @@ class CityServiceAPI(BaseService):
         except Exception as e:
             raise e
 
-
     async def get_all_cities(self, page: int = 1, page_size: int = 100) -> Dict[str, Any]:
         """Get all cities with pagination"""
         return await self._request(

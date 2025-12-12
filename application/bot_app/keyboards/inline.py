@@ -8,7 +8,9 @@ def main_menu_inl(lang, status="online"):
     keyword.data(status, status).row()
     keyword.data("settings", "settings")
     keyword.data("balance", "balance").row()
-    keyword.data("help", "help")
+    keyword.data("help", "help").row()
+    # if status == "online":
+    #     keyword.data("active_orders", "active_orders").row()
     return keyword.inline()
 
 def balance_inl(lang, balance=True):
@@ -70,7 +72,7 @@ def back_inl(lang):
 
 def delete_inl(lang):
     keyword = kb(lang)
-    keyword.data("delete", "delete").row()
+    keyword.data("delete_message", "delete").row()
     return keyword.inline()
 
 def picked_up_inl(lang, order_id):

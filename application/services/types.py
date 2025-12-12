@@ -24,6 +24,7 @@ class DriverService:
     telegram_id: Optional[int] = None
     from_location: str = ""
     to_location: str = ""
+    car_class: Optional[str] = None
     status: str = 'online'
     amount: float = 0.0
 

@@ -90,9 +90,11 @@ class DriverServiceAPI(BaseService):
             telegram_id=data.get('telegram_id'),
             from_location=data.get('from_location', ""),
             to_location=data.get('to_location', ""),
+            car_class=data.get('cars', [])[0].get('car_class', ""),
             status=data.get('status', 'active'),
             amount=data.get('amount', 0.0),
         )
+
 
     def _dict_to_car(self, data: Dict[str, Any]) -> CarService:
         """Convert dictionary to CarService object"""
