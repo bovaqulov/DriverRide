@@ -249,7 +249,7 @@ class OrderResponse:
         }
 
         if order.content_object.travel_class and order.content_object.travel_class != 'all':
-            if order.content_object.travel_class == "economy":
+            if order.content_object.travel_class.lower() == "economy":
                 params['car_class'] = "economy"
 
         try:

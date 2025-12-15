@@ -47,7 +47,6 @@ class Settings(BaseSettings):
     WEBHOOK_URL_PROD: str = "http://127.0.0.1:8000"
 
 
-
     @property
     def BOT_TOKEN(self) -> str:
         """Get bot token based on DEBUG mode"""

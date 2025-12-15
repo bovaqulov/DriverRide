@@ -1,5 +1,5 @@
-from application.services.base import BaseService
-from application.services.driver_service import DriverServiceAPI
+from ..services.base import BaseService
+from ..services.driver_service import DriverServiceAPI
 
 
 class OrderServiceAPI(BaseService):
@@ -42,3 +42,4 @@ class OrderServiceAPI(BaseService):
             )
         except Exception as e:
             print("Misatke is me: ", e)
+
