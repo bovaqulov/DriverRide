@@ -259,7 +259,7 @@ class OrderResponse:
             elif travel_class in ["standard"]:
                 params["car_class"] = ["standard", "comfort"]
 
-            elif travel_class in ["comfort", "comfort"]:
+            elif travel_class in ["comfort"]:
                 params["car_class"] = ["comfort"]
 
         try:
