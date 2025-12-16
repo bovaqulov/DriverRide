@@ -248,9 +248,19 @@ class OrderResponse:
             "exclude_busy": "true",
         }
 
-        if order.content_object.travel_class and order.content_object.travel_class != 'all':
-            if order.content_object.travel_class.lower() == "economy":
-                params['car_class'] = "economy"
+        travel_class = order.content_object.travel_class
+
+        if travel_class and travel_class.lower() != "all":
+            travel_class = travel_class.lower()
+
+            if travel_class in ["economy"]:
+                params["car_class"] = ["economy"]
+
+            elif travel_class in ["standard"]:
+                params["car_class"] = ["standard", "comfort"]
+
+            elif travel_class in ["comfort", "comfort"]:
+                params["car_class"] = ["comfort"]
 
         try:
             response = await self.driver_api.list_drivers(params)
