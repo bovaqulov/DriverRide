@@ -248,19 +248,16 @@ class OrderResponse:
             "exclude_busy": "true",
         }
 
+        CAR_CLASS_MAP = {
+            "economy": ["economy"],
+            "standard": ["standard", "comfort"],
+            "comfort": ["comfort"],
+        }
+
         travel_class = order.content_object.travel_class
 
         if travel_class and travel_class.lower() != "all":
-            travel_class = travel_class.lower()
-
-            if travel_class in ["economy"]:
-                params["car_class"] = ["economy"]
-
-            elif travel_class in ["standard"]:
-                params["car_class"] = ["standard", "comfort"]
-
-            elif travel_class in ["comfort"]:
-                params["car_class"] = ["comfort"]
+            params["car_class"] = CAR_CLASS_MAP.get(travel_class.lower())
 
         try:
             response = await self.driver_api.list_drivers(params)
