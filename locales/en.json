@@ -7,7 +7,7 @@
   "balance_notice": "ℹ️ Make sure your balance always has funds available. This is a key requirement for getting ride requests.",
   "account_balance_info": "💳 Your balance: {balance} UZS\n\nℹ️ Please ensure you have sufficient funds available.",
   "new_trip_request": "🚗 <b>NEW TRIP REQUEST #{travel_id}</b>\n\n📍 <b>Route:</b> {from_city} → {to_city}\n{gender_icon} <b>Number of passengers:</b> {passenger} person(s){woman_note}\n💰 <b>Offered price:</b> {price} UZS\n⏳ <b>Start time:</b> {start_time}\n💬 <b>Comment:</b> {commit}",
-  "new_delivery_request": "🚗 <b>NEW PARCEL REQUEST #{travel_id}</b>\n\n📍 <b>Route:</b> {from_city} → {to_city}\n<b>Offer price:</b> {price} UZS",
+  "new_delivery_request": "🚗 <b>NEW PARCEL REQUEST #{travel_id}</b>\n\n📍 <b>Route:</b> {from_city} → {to_city}\n<b>Offer price:</b> {price} UZS\n⏳ <b>Start time:</b> {start_time}\n\uD83D\uDCAC <b>Comment:</b> {commit}",
   "accepted_order_details": "🎯 <b>Accepted #{travel_id}</b>\n\n📍 <b>Route:</b>\n   └── <b>{from_city}</b> → <b>{to_city}</b>\n\n👥 <b>Passengers:</b>\n   └── {gender_icon} {passenger} person{woman_note}\n\n🚗 <b>Car Class:</b>\n   └── {travel_class}\n\n💵 <b>Offered Price:</b>\n   └── {price} UZS\n\n📞 <b>Phone Number:</b>\n   └── {phone}\n\n⏰ <b>Request Time:</b>\n   └── {time}\n\n🔔 <i>Use the buttons below to contact the passenger</i>",
   "accepted_order": "🎯 Accepted order {travel_id}\n📍 Route: {from_city} → {to_city}\n💵 Offer price: {price} UZS\n📞 Phone number: {phone}\n⏰ Request time: {time}\n🔔 Use the buttons below to contact the passenger",
   "woman_passenger_note": " (Female passenger)",

@@ -7,7 +7,7 @@
   "balance_notice": "ℹ️ Следите, чтобы на вашем балансе всегда были средства. Это главное условие для получения заказов от пассажиров.",
   "account_balance_info": "💳 Ваш баланс: {balance} сум\n\nℹ️ Пожалуйста, следите, чтобы средств на счету было достаточно.",
   "new_trip_request": "🚗 <b>НОВЫЙ ЗАПРОС НА ПОЕЗДКУ #{travel_id}</b>\n\n📍 <b>Маршрут:</b> {from_city} → {to_city}\n{gender_icon} <b>Количество пассажиров:</b> {passenger} чел.{woman_note}\n💰 <b>Предложенная цена:</b> {price} сум\n⏳ <b>Время начала:</b> {start_time}\n💬 <b>Комментарий:</b> {commit}",
-  "new_delivery_request": "🚗 <b>НОВЫЙ ЗАПРОС ПОСЫЛКИ #{travel_id}</b>\n\n📍 <b>Направление:</b> {from_city} → {to_city}\n<b>Цена предложения:</b> {price} сум",
+  "new_delivery_request": "🚗 <b>НОВЫЙ ЗАПРОС ПОСЫЛКИ #{travel_id}</b>\n\n📍 <b>Направление:</b> {from_city} → {to_city}\n<b>Цена предложения:</b> {price} сум\n⏳ <b>Время начала:</b> {start_time}\n\uD83D\uDCAC <b>Комментарий:</b> {commit}",
   "accepted_order_details": "🎯 <b>Принято #{travel_id}</b>\n\n📍 <b>Маршрут:</b>\n   └── <b>{from_city}</b> → <b>{to_city}</b>\n\n👥 <b>Пассажиры:</b>\n   └── {gender_icon} {passenger} чел.{woman_note}\n\n🚗 <b>Класс машины:</b>\n   └── {travel_class}\n\n💵 <b>Предложенная цена:</b>\n   └── {price} сум\n\n📞 <b>Номер телефона:</b>\n   └── {phone}\n\n⏰ <b>Время запроса:</b>\n   └── {time}\n\n🔔 <i>Для связи с пассажиром используйте кнопки ниже</i>",
   "accepted_order": "🎯 Заявка принята {travel_id}\n📍 Направление: {from_city} → {to_city}\n💵 Цена предложения: {price} сум\n📞 Номер телефона: {phone}\n⏰ Время запроса: {time}\n🔔 Используйте кнопки ниже для связи с пассажиром",
   "chat_deployment": "🛠️ Раздел чата находится в стадии разработки. Приносим извинения за неудобства! 🙏",
