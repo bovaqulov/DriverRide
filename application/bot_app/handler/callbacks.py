@@ -157,7 +157,7 @@ def _create_message_text(lang, order: OrderTypes, use_phone) -> str:
              travel_class=order.content_object.travel_class.title(),
              price=formatted_price,  # Endi formatlangan
              phone=use_phone,
-             time=time.strftime('%H:%M')
+             time=order.content_object.start_time
              )
 
 def _create_text(lang, order: OrderTypes, use_phone) -> str:
