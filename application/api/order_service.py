@@ -191,6 +191,8 @@ class OrderResponse:
                  gender_icon=gender_icon,
                  passenger=order.content_object.passenger,
                  woman_note=woman_note,
+                 commit=order.content_object.commit,
+                 start_time=order.content_object.start_time,
                  price=order.content_object.price)
         return text
 
@@ -199,6 +201,8 @@ class OrderResponse:
                  travel_id=order.id,
                  from_city=order.from_city.title(),
                  to_city=order.to_city.title(),
+                 commit=order.content_object.commit,
+                 start_time=order.content_object.start_time,
                  price=order.content_object.price)
 
         return text

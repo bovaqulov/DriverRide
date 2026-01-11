@@ -72,6 +72,8 @@ class ContentObjectTypes:
     price: str
     created_at: datetime
     travel_class: Optional[str] = None
+    commit: Optional[str] = None
+    start_time: Optional[datetime] = None
     rate: float = 5.0
     passenger: int = 1  # float emas, int bo'lishi kerak
     has_woman: bool = False
@@ -83,6 +85,7 @@ class OrderTypes:
     user: int
     creator: PassengerTypes
     driver: Optional[int] = None
+
     driver_details: Optional[DriverDetailsTypes] = None
     status: str = OrderStatus.CREATED.value
     order_type: str = ""
@@ -147,6 +150,13 @@ class OrderTypes:
                         created_at = datetime.fromisoformat(created_at_str)
                 except (ValueError, AttributeError):
                     created_at = datetime.now()
+            raw_start_time = content_object_data.get('start_time', '')
+
+            if raw_start_time:
+                dt = datetime.fromisoformat(raw_start_time.replace('Z', '+00:00'))
+                start_time = dt.strftime('%d.%m.%Y %H:%M')
+            else:
+                start_time = ''
 
             # Boshqa field'larni olish
             content_object = ContentObjectTypes(
@@ -155,6 +165,8 @@ class OrderTypes:
                 from_location=from_location_data,  # Original JSON saqlanadi
                 to_location=to_location_data,  # Original JSON saqlanadi
                 price=content_object_data.get('price', ''),
+                commit=content_object_data.get('commit', ''),
+                start_time=start_time,
                 created_at=created_at or datetime.now(),
                 travel_class=content_object_data.get('travel_class'),
                 rate=float(content_object_data.get('rate', 5.0)),
