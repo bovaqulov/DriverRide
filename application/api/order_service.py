@@ -1,19 +1,19 @@
 import json
 import asyncio
+from datetime import datetime, timezone, timedelta
 from typing import List
 from dataclasses import dataclass
 
-from .api_types import OrderTypes, OrderStatus
+from .api_types import OrderTypes, OrderStatus, PassengerTypes
 from ..bot_app.keyboards.inline import confirm_order_inl, finish_inl
 from ..core.i18n import t
 from ..core.bot import bot
-from ..services import TelegramUser
+from ..services import TelegramUserServiceAPI
 from ..services.driver_service import DriverServiceAPI
 
 
 @dataclass
 class MessageTask:
-    """Message jo'natish vazifasi"""
     telegram_id: int
     text: str
     reply_markup: dict
@@ -141,8 +141,9 @@ class OrderResponse:
             response = await self.request.body()
             result = response.decode("utf-8")
             data = json.loads(result)
-            print(f"Order data received: {data}")
-            return OrderTypes.from_dict(data)
+            order = OrderTypes.from_dict(data)
+            print(f"Order types received: {order}")
+            return order
         except json.JSONDecodeError as e:
             print(f"JSON decode error: {e}")
             return
@@ -168,47 +169,55 @@ class OrderResponse:
 
             if order.status == OrderStatus.STARTED.value:
                 await self._ensure_queue_started()
-                lang = await TelegramUser().get_lang(order.driver_details.telegram_id)
+                lang = await TelegramUserServiceAPI().get_lang(order.driver_details.get("telegram_id"))
                 return await bot.send_message(
-                    order.driver_details.telegram_id,
+                    order.driver_details.get("telegram_id"),
                     t("safe_trip", lang),
                     reply_markup=finish_inl(lang, order.id)
                 )
-
-
-
         except Exception as e:
             print(f"Error in OrderResponse.control: {e}")
 
-    def _create_travel_message(self, order, lang):
-        gender_icon = "👩" if order.content_object.has_woman else "👤"
-        woman_note = t("woman_passenger_note", lang) if order.content_object.has_woman else ""
+    def _create_travel_message(self, order: OrderTypes, lang):
+        try:
+            gender_icon = "👩" if order.content_object.has_woman else "👤"
+            woman_note = t("woman_passenger_note", lang) if order.content_object.has_woman else ""
 
-        text = t("new_trip_request", lang,
-                 travel_id=order.id,
-                 from_city=order.from_city.title(),
-                 to_city=order.to_city.title(),
-                 gender_icon=gender_icon,
-                 passenger=order.content_object.passenger,
-                 woman_note=woman_note,
-                 commit=order.content_object.commit,
-                 start_time=order.content_object.start_time,
-                 price=order.content_object.price)
-        return text
+            price = int(order.content_object.price) * int(order.content_object.passenger)
 
-    def _create_delivery_message(self, order, lang):
+            text = t("new_trip_request", lang,
+                     order_id=order.id,
+                     from_city=order.content_object.route.from_city.get("translate").get("uz"),
+                     to_city=order.content_object.route.to_city.get("translate").get("uz"),
+                     gender_icon=gender_icon,
+                     cashback=order.content_object.cashback,
+                     total_price=price - int(order.content_object.cashback),
+                     passenger=order.content_object.passenger,
+                     woman_note=woman_note,
+                     comment=order.content_object.comment,
+                     start_time=datetime.fromisoformat(order.content_object.start_time.replace('Z', '+00:00')).astimezone(timezone(timedelta(hours=5))).strftime("%d.%m.%Y, %H:%M"),
+                     price=price)
+            return text
+        except Exception as e:
+            print(f"Error in OrderResponse._create_travel_message: {e}")
+
+    def _create_delivery_message(self, order: OrderTypes, lang):
+
+
         text = t("new_delivery_request", lang,
-                 travel_id=order.id,
-                 from_city=order.from_city.title(),
-                 to_city=order.to_city.title(),
-                 commit=order.content_object.commit,
-                 start_time=order.content_object.start_time,
+                 order_id=order.id,
+                 cashback=order.content_object.cashback,
+                 total_price=int(order.content_object.price) - int(order.content_object.cashback),
+                 from_city=order.content_object.route.from_city.get("translate").get("uz"),
+                 to_city=order.content_object.route.to_city.get("translate").get("uz"),
+                 comment=order.content_object.comment,
+                 start_time=datetime.fromisoformat(order.content_object.start_time.replace('Z', '+00:00')).astimezone(
+                     timezone(timedelta(hours=5))).strftime("%d.%m.%Y, %H:%M"),
                  price=order.content_object.price)
 
         return text
 
     async def _passenger_create(self, driver: dict, order: OrderTypes):
-        """Message tayyorlash va queue ga qo'shish"""
         try:
             driver_info = driver.get("driver_info", {})
             telegram_id = driver_info.get("telegram_id")
@@ -219,13 +228,13 @@ class OrderResponse:
 
             lang = driver_info.get("language", "uz")
 
-            # Text tayyorlash
-            if order.content_type_name == "passengerpost":
-                text = self._create_delivery_message(order, lang)
-                reply_markup = confirm_order_inl(lang, order.id, travel=False)
-            else:
+            if order.order_type == "travel":
                 text = self._create_travel_message(order, lang)
                 reply_markup = confirm_order_inl(lang, order.id)
+            else:
+                text = self._create_delivery_message(order, lang)
+                reply_markup = confirm_order_inl(lang, order.id, travel=False)
+
 
 
             # Queue ga qo'shish
@@ -243,31 +252,22 @@ class OrderResponse:
 
     async def _find_matching_drivers(self, order: OrderTypes) -> List[dict]:
         """Mos keladigan haydovchilarni topish"""
-        params = {
-            "from_location": order.from_city,
-            "to_location": order.to_city,
-            "status": "online",
-            "min_amount": int(int(order.content_object.price) * 0.05),
-            "ordering": "-amount",
-            "exclude_busy": "true",
-        }
-
-        CAR_CLASS_MAP = {
-            "economy": ["economy"],
-            "standard": ["standard", "comfort"],
-            "comfort": ["comfort"],
-        }
-
-        travel_class = order.content_object.travel_class
-
-        if travel_class and travel_class.lower() != "all":
-            params["car_class"] = CAR_CLASS_MAP.get(travel_class.lower())
-
         try:
+            params = {
+                "route_id": order.content_object.route.route_id,
+                "status": "online",
+                "min_amount": int((int(order.content_object.price) * int(order.content_object.passenger)) * 0.05),
+                "ordering": "-amount",
+                "exclude_busy": "true",
+            }
+
+            if order.content_object.tariff_id != 4:
+                params["tariff_id"] =  order.content_object.tariff_id
+
             response = await self.driver_api.list_drivers(params)
             return response.get("results", {})
         except Exception as e:
-            print(f"Error finding drivers: {e}")
+            print(f"Error OrderResponse._find_matching_drivers {e}")
             return []
 
     async def cleanup(self):

@@ -1,8 +1,8 @@
 """
 Business logic services
 """
-from .user_service import TelegramUser
+from .user_service import TelegramUserServiceAPI
 
 __all__ = [
-    'TelegramUser',
+    'TelegramUserServiceAPI',
 ]

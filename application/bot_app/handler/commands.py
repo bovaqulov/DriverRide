@@ -6,7 +6,7 @@ from telebot.states.asyncio import StateContext
 from . import UltraHandler
 from ..handler import cmd
 from ..handler.functions import main_menu
-from ...services import TelegramUser
+from ...services import TelegramUserServiceAPI
 
 
 @cmd("start", "Restart Bot")
@@ -19,7 +19,7 @@ async def start_handler(
         user = await h.get_user()
 
         if user is None:
-            obj = TelegramUser()
+            obj = TelegramUserServiceAPI()
             await obj.create_user({
                 "telegram_id": msg.from_user.id,
                 "full_name": msg.from_user.full_name,
@@ -30,6 +30,7 @@ async def start_handler(
 
         return await main_menu(msg, state, send=True)
     except Exception as e:
-        print(e)
+
+        print("start command error", e)
 
 

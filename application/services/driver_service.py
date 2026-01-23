@@ -1,10 +1,7 @@
 from typing import Optional, Dict, Any
-from dataclasses import asdict
-
-from ..core.config import settings
 from ..core.log import logger
 from ..services.base import BaseService
-from ..services.types import DriverService, CarService, DriverTransactionService
+from ..services.types import DriverService, CarService, DriverTransactionService, convert_api_response_to_driver_service
 
 
 class DriverServiceAPI(BaseService):
@@ -82,41 +79,19 @@ class DriverServiceAPI(BaseService):
             logger.error(f"Exception while fetching drivers list: {str(e)}")
             return {}
 
+    async def change_direction(self, driver_id: int, route_id: str) -> None:
+        """Change driver direction"""
+        response = await self._request(
+            'PATCH',
+            f'/drivers/{driver_id}/update-route/',  # yoki /update-route/
+            json={'route_id': route_id}
+        )
+        print(response)
     # Conversion methods
     def _dict_to_driver(self, data: Dict[str, Any]) -> DriverService:
         logger.debug("Converting API response to DriverService object")
-        return DriverService(
-            id=data.get('id'),
-            telegram_id=data.get('telegram_id'),
-            from_location=data.get('from_location', ""),
-            to_location=data.get('to_location', ""),
-            car_class=data.get('cars', [])[0].get('car_class', ""),
-            status=data.get('status', 'active'),
-            amount=data.get('amount', 0.0),
-        )
+        return convert_api_response_to_driver_service(data)
 
-
-    def _dict_to_car(self, data: Dict[str, Any]) -> CarService:
-        """Convert dictionary to CarService object"""
-        return CarService(
-            id=data.get('id'),
-            driver_id=data.get('driver'),
-            car_number=data.get('car_number', ''),
-            car_model=data.get('car_model', ''),
-            car_color=data.get('car_color', ''),
-            created_at=data.get('created_at'),
-            updated_at=data.get('updated_at')
-        )
-
-    def _dict_to_transaction(self, data: Dict[str, Any]) -> DriverTransactionService:
-        """Convert dictionary to DriverTransactionService object"""
-        return DriverTransactionService(
-            id=data.get('id'),
-            driver_id=data.get('driver'),
-            amount=data.get('amount', 0.0),
-            created_at=data.get('created_at'),
-            updated_at=data.get('updated_at')
-        )
 
     async def add_driver_balance(self, driver_id: int, amount: float, reason: str = None) -> Optional[Dict[str, Any]]:
         """Haydovchining balansiga pul qo'shish"""

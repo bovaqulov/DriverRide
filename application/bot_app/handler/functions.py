@@ -7,7 +7,7 @@ from ..handler import UltraHandler
 from ..keyboards.inline import main_menu_inl, register_driver_inl, balance_inl
 from ...core import t
 from ...services.driver_service import DriverServiceAPI
-from ...services.types import DriverService, UserService
+from ...services.types import DriverService
 
 
 async def main_menu(
@@ -17,11 +17,10 @@ async def main_menu(
         send: bool = False,
 
 ):
+
     h = UltraHandler(msg, state)
     lang = await h.lang()
-    user: UserService = await h.get_user()
     driver_api = DriverServiceAPI()
-
     driver: Union[DriverService] = await h.get_driver()
 
     if not driver:
@@ -56,8 +55,9 @@ async def main_menu(
     return await func(
         "driver_profile_status",
         reply_markup=main_menu_inl(lang, driver_status),
-        balance=f"{driver.amount:,}",
-        rating=user.rating,
+        balance=f"{int(driver.amount)}",
         status=t(driver_status, lang),
-        direction=f"{driver.from_location.title()} -> {driver.to_location.title()}",
+        direction=f"{driver.from_location.get("translate", {})[lang]} → {driver.to_location.get("translate", {})[lang]}",
+        car_model=f"{driver.cars[0].car_model}",
+        tariff=f"{driver.cars[0].tariff.translate[lang]}",
     )

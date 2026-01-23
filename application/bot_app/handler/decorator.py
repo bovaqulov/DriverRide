@@ -10,7 +10,7 @@ from ...core.bot import bot
 from ...core.config import settings
 from ...core.i18n import t
 from ...core.log import logger
-from ...services import TelegramUser
+from ...services import TelegramUserServiceAPI
 from ...services.driver_service import DriverServiceAPI
 from ...services.user_service import UserService
 
@@ -121,7 +121,7 @@ class UltraHandler:
     @async_lru_cache(maxsize=256)
     async def get_user(self) -> UserService:
         if not self._user_cache:
-            self._user_cache = await TelegramUser().get_user(self.user_id)
+            self._user_cache = await TelegramUserServiceAPI().get_user(self.user_id)
         return self._user_cache
 
     async def get_driver(self) -> Optional[DriverServiceAPI]:
@@ -157,12 +157,20 @@ class UltraHandler:
             **kwargs
     ) -> Optional[Message]:
         final_text = await self._(text, **kwargs) if translate else text
-
-        return await bot.send_message(
-            self.chat_id,
-            final_text,
-            reply_markup=reply_markup,
-        )
+        try:
+            return await bot.send_message(
+                self.chat_id,
+                final_text,
+                reply_markup=reply_markup,
+                parse_mode="MarkdownV2",
+            )
+        except Exception as e:
+            print(e)
+            return await bot.send_message(
+                self.chat_id,
+                final_text,
+                reply_markup=reply_markup,
+            )
 
     @error_handler(send_to_user=False)
     async def location(self, latitude, longitude):
@@ -198,12 +206,23 @@ class UltraHandler:
         final_text = await self._(text, **kwargs) if translate else text
         message_id = self._get_message_id()
         try:
-            return await bot.edit_message_text(
-                final_text,
-                self.chat_id,
-                message_id,
-                reply_markup=reply_markup
-            )
+            try:
+
+                return await bot.edit_message_text(
+                    final_text,
+                    self.chat_id,
+                    message_id,
+                    reply_markup=reply_markup,
+                    parse_mode="MarkdownV2",
+                )
+            except Exception as e:
+                print(e)
+                return await bot.edit_message_text(
+                    final_text,
+                    self.chat_id,
+                    message_id,
+                    reply_markup=reply_markup,
+                )
         except Exception as e:
             logger.error(f"Error editing message: {e}")
             return None

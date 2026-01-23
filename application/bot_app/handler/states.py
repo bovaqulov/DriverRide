@@ -23,7 +23,7 @@ async def balance_state_upload(call, state: StateContext):
             )
         else:
             amount = int(call.text)
-            if 0 < amount <= 15000:
+            if 0 < amount <= 25000:
                 return await h.send(
                     "min_payment",
                     reply_markup=choice_balance_inl(lang)

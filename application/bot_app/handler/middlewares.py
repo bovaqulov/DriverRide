@@ -5,7 +5,7 @@ from typing import Dict, Any, Union
 from telebot.asyncio_handler_backends import BaseMiddleware, CancelUpdate
 from telebot.types import Message, CallbackQuery
 from application.core import bot, logger
-from application.services import TelegramUser
+from application.services import TelegramUserServiceAPI
 
 
 class AllInOneMiddleware(BaseMiddleware):
@@ -94,7 +94,7 @@ class AllInOneMiddleware(BaseMiddleware):
             user_id = message.from_user.id
 
             # Ban check
-            if await TelegramUser().is_ban_user(user_id):
+            if await TelegramUserServiceAPI().is_ban_user(user_id):
                 await bot.send_message(message.chat.id, "🚫 You are banned.")
                 return False
 

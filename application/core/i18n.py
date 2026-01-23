@@ -13,11 +13,9 @@ _translations: Dict[str, Dict[str, str]] = {}
 # Reverse lookup cache for slug detection
 _reverse_lookup: Dict[str, Dict[str, str]] = {}
 
-
 async def init_translations(redis_client: redis.Redis) -> None:
     """
     Initialize translations from JSON files to cache and Redis
-
     Args:
         redis_client: Redis client instance
     """

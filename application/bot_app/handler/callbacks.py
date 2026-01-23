@@ -1,4 +1,6 @@
 import time
+from datetime import timezone, timedelta, datetime
+
 from telebot import types
 from telebot.states.asyncio import StateContext
 
@@ -26,7 +28,6 @@ async def offline_callback(
 async def online_callback(
         call: types.CallbackQuery, state: StateContext
 ):
-
     return await main_menu(call, state, status="offline")
 
 
@@ -106,7 +107,8 @@ async def accept_order_callback(
     data, order_type, order_id = call.data.split('_')
     try:
         order_api = OrderServiceAPI()
-        order = await order_api.get(int(order_id))
+        order = await order_api.get_order(int(order_id))
+
         order_info = OrderTypes.from_dict(order)
 
         if order_type == "travel":
@@ -114,19 +116,18 @@ async def accept_order_callback(
         else:
             text = _create_text(lang, order_info, use_phone=order_info.creator.phone)
 
-        if order_info.status == "created" and order_info.driver is None:
+        if order_info.status == "created" and order_info.driver_details is None:
 
             assigned = await order_api.add_new_driver(order_id, call.from_user.id)
-
             if assigned.get("status") == "assigned":
-                location = order_info.content_object.from_location.get("location", {})
+                location = order_info.content_object.from_location.get("location")
                 if location:
                     if location.get("latitude", None) and location.get("longitude", None):
                         await h.location(
                             location.get("latitude"),
                             location.get("longitude")
                         )
-                return await h.edit(text, reply_markup=chat_inl(lang, order_id))
+                return await h.edit(text, reply_markup=chat_inl(lang, order_id), translate=False)
 
         return await h.edit("order_taken_by_other", reply_markup=delete_inl(lang))
     except Exception as e:
@@ -141,24 +142,27 @@ def _create_message_text(lang, order: OrderTypes, use_phone) -> str:
     # Price ni raqamga o'tkazish
     try:
         # Float ga o'tkazib, butun qismini olish
-        price_num = float(order.content_object.price)
+        price_num = float(order.content_object.price) * order.content_object.passenger
         formatted_price = f"{price_num:,.0f}"
     except (ValueError, TypeError):
         # Agar o'tkazish mummkin bo'lmasa, oddiy string qaytarish
-        formatted_price = order.content_object.price
+        formatted_price = order.content_object.price * order.content_object.passenger
+
+    print(order)
 
     return t("accepted_order_details", lang,
              travel_id=order.id,
-             from_city=order.from_city.title(),
-             to_city=order.to_city.title(),
+             from_city=order.content_object.route.from_city.get("translate").get(lang),
+             to_city=order.content_object.route.to_city.get("translate").get(lang),
              gender_icon=gender_icon,
              passenger=order.content_object.passenger,
              woman_note=woman_note,
-             travel_class=order.content_object.travel_class.title(),
              price=formatted_price,  # Endi formatlangan
              phone=use_phone,
-             time=order.content_object.start_time
+             time=datetime.fromisoformat(order.content_object.start_time.replace('Z', '+00:00')).astimezone(timezone(timedelta(hours=5))).strftime("%d.%m.%Y, %H:%M"),
+             comment=order.content_object.comment,
              )
+
 
 def _create_text(lang, order: OrderTypes, use_phone) -> str:
     try:
@@ -171,11 +175,12 @@ def _create_text(lang, order: OrderTypes, use_phone) -> str:
 
     return t("accepted_order", lang,
              travel_id=order.id,
-             from_city=order.from_city.title(),
-             to_city=order.to_city.title(),
+             from_city=order.content_object.route.from_city.get("translate").get(lang),
+             to_city=order.content_object.route.to_city.get("translate").get(lang),
              price=formatted_price,
              phone=use_phone,
-             time=time.strftime('%H:%M')
+             comment=order.content_object.comment,
+             time=datetime.fromisoformat(order.content_object.start_time.replace('Z', '+00:00')).astimezone(timezone(timedelta(hours=5))).strftime("%d.%m.%Y, %H:%M"),
              )
 
 
@@ -198,6 +203,7 @@ async def arrived_callback(call: types.CallbackQuery, state: StateContext):
         reply_markup=picked_up_inl(lang, order_id)
     )
 
+
 @cb("picked")
 async def picked_up_callback(call: types.CallbackQuery, state: StateContext):
     h = UltraHandler(call, state)
@@ -217,7 +223,6 @@ async def picked_up_callback(call: types.CallbackQuery, state: StateContext):
 
 @cb("finished")
 async def finish_callback(call: types.CallbackQuery, state: StateContext):
-
     h = UltraHandler(call, state)
     data, order_id = call.data.split('_')
     order_api = OrderServiceAPI()
@@ -227,21 +232,14 @@ async def finish_callback(call: types.CallbackQuery, state: StateContext):
         "great"
     )
 
+
 @cb("direction")
 async def direction_callback(call: types.CallbackQuery, state: StateContext):
     h = UltraHandler(call, state)
     driver_api = DriverServiceAPI()
     driver_data = await driver_api.get_driver_by_telegram_id(call.from_user.id)
-    print(driver_data)
     try:
-        city_api = CityServiceAPI()
-        from_location_id = await city_api.get_id_city_title(driver_data.from_location)
-        to_location_id = await city_api.get_id_city_title(driver_data.to_location)
-
-        await driver_api.update_driver(driver_data.id, {
-            "from_location": to_location_id,
-            "to_location": from_location_id,
-        })
+        await driver_api.change_direction(driver_data.id, driver_data.route_id.route_id)
         await h.answer("change_direction")
         await main_menu(call, state)
     except Exception as e:
@@ -257,10 +255,12 @@ async def help_callback(call: types.CallbackQuery, state: StateContext):
         reply_markup=back_inl(lang)
     )
 
+
 @cb("cancel")
 async def cancel_callback(call: types.CallbackQuery, state: StateContext):
     h = UltraHandler(call, state)
     await h.delete()
+
 
 @cb("delete")
 async def delete_callback(call: types.CallbackQuery, state: StateContext):

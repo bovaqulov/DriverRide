@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     PORT_DEMO: int = 8000
 
     # Bot tokens
-    BOT_TOKEN_DEMO: str
+    BOT_TOKEN_DEMO: str = "8310564947:AAFnJq3_jv3WQs0i087XzM-v7lt2JMAyl7M"
     BOT_TOKEN_PROD: str
 
     # Payment
@@ -23,7 +23,6 @@ class Settings(BaseSettings):
 
     # Frontend url
     FRONTEND_URL: str
-
 
     # Redis
     REDIS_URL_DEMO: str = "redis://localhost:6379/0"

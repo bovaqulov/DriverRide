@@ -1,7 +1,10 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
-from typing import List, Optional, Dict, Any
+from typing import Optional, Dict, Any, Union
 from enum import Enum
+import json
+
+from application.services.route_service import RouteService
 
 
 @dataclass
@@ -11,218 +14,184 @@ class PassengerTypes:
     language: str
     full_name: str
     total_rides: int
-    phone: str = None
-    rating: float = None
+    phone: Optional[str] = None
+    rating: Optional[float] = None
 
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'PassengerTypes':
+        """Dictionary dan PassengerTypes obyektini yaratish"""
+        # Kerakli maydonlarni ajratib olish
+        return cls(
+            id=data.get('id'),
+            telegram_id=data.get('telegram_id'),
+            language=data.get('language'),
+            full_name=data.get('full_name'),
+            total_rides=data.get('total_rides', 0),
+            phone=data.get('phone'),
+            rating=data.get('rating')
+        )
 
-@dataclass
-class CarsTypes:
-    id: int
-    car_number: str
-    car_model: str
-    car_color: str
-    car_class: str
-
-
-@dataclass
-class LocationTypes:
-    longitude: float
-    latitude: float
-
-
-@dataclass
-class AddressType:
-    city: str
-    location: Optional[LocationTypes] = None
+    def to_dict(self) -> Dict[str, Any]:
+        """PassengerTypes obyektini dictionary ga aylantirish"""
+        return {
+            'id': self.id,
+            'telegram_id': self.telegram_id,
+            'language': self.language,
+            'full_name': self.full_name,
+            'total_rides': self.total_rides,
+            'phone': self.phone,
+            'rating': self.rating
+        }
 
 
 class OrderStatus(str, Enum):
     CREATED = "created"
+    SEARCHED = "searched"
     ASSIGNED = "assigned"
     ARRIVED = "arrived"
     STARTED = "started"
     ENDED = "ended"
+    CANCELED = "canceled"
     REJECTED = "rejected"
 
 
 @dataclass
-class DriverDetailsTypes:
-    id: int
-    telegram_id: int
-    full_name: str
-    total_rides: int
-    phone: str
-    rating: float
-    from_location: str
-    to_location: str
-    status: str
-    amount: float
-    cars: List[CarsTypes] = field(default_factory=list)
-    status_display: str = ""
-    profile_image: str = ""
-    full_profile_image_url: str = ""
-
-
-@dataclass
 class ContentObjectTypes:
-    type: str
-    id: int
-    from_location: Dict[str, Any]  # JSON sifatida keladi
-    to_location: Dict[str, Any]  # JSON sifatida keladi
-    price: str
-    created_at: datetime
-    travel_class: Optional[str] = None
-    commit: Optional[str] = None
-    start_time: Optional[datetime] = None
-    rate: float = 5.0
-    passenger: int = 1  # float emas, int bo'lishi kerak
+    price: Union[str, int]
+    route: Union[RouteService]
+    from_location: Dict[str, Any]
+    to_location: Dict[str, Any]
+    cashback: int
+    created_at: str
+    tariff_id: Union[str, int]
+    comment: Optional[str] = None
+    start_time: Optional[str] = None
+    passenger: int = 1
     has_woman: bool = False
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'ContentObjectTypes':
+        """Dictionary dan ContentObjectTypes obyektini yaratish"""
+        # Price ni string formatga o'tkazish
+        price = data.get('price')
+        if isinstance(price, (int, float)):
+            price = str(price)
+
+        # Datetime field'larini tekshirish
+        created_at = data.get('created_at')
+        start_time = data.get('start_time')
+
+        return cls(
+            price=price,
+            from_location=data.get('from_location', {}),
+            to_location=data.get('to_location', {}),
+            cashback=data.get('cashback', 0),
+            created_at=created_at,
+            route=RouteService(**data.get("route", {})),
+            tariff_id=data.get('tariff_id'),
+            comment=data.get('comment'),
+            start_time=start_time,
+            passenger=data.get('passenger', 1),
+            has_woman=data.get('has_woman', False)
+        )
+
+    def to_dict(self) -> Dict[str, Any]:
+        """ContentObjectTypes obyektini dictionary ga aylantirish"""
+        return {
+            'price': self.price,
+            'route': self.route,
+            'from_location': self.from_location,
+            'to_location': self.to_location,
+            'cashback': self.cashback,
+            'comment': self.comment,
+            'start_time': self.start_time,
+            'created_at': self.created_at,
+            'passenger': self.passenger,
+            'has_woman': self.has_woman
+        }
 
 
 @dataclass
 class OrderTypes:
     id: int
     user: int
-    creator: PassengerTypes
-    driver: Optional[int] = None
-
-    driver_details: Optional[DriverDetailsTypes] = None
+    creator: Union[PassengerTypes]
+    content_object: Union[ContentObjectTypes]
+    driver_details: Optional[Union[Dict[str, Any], Any]] = None
     status: str = OrderStatus.CREATED.value
     order_type: str = ""
-    content_object: Optional[ContentObjectTypes] = None
-    content_type_name: str = ""
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'OrderTypes':
         """Dictionary dan OrderTypes obyektini yaratish"""
-        data = data.copy()
+        # Creator ni tekshirish va konvert qilish
+        creator_data = data.get('creator')
+        if isinstance(creator_data, dict):
+            creator = PassengerTypes.from_dict(creator_data)
+        elif isinstance(creator_data, PassengerTypes):
+            creator = creator_data
+        else:
+            creator = None
 
-        # Creator ni qayta ishlash
-        creator_data = data.pop('creator', {})
-        creator = PassengerTypes(**creator_data) if creator_data else None
+        # Content object ni tekshirish va konvert qilish
+        content_data = data.get('content_object')
+        if isinstance(content_data, dict):
+            content_object = ContentObjectTypes.from_dict(content_data)
+        elif isinstance(content_data, ContentObjectTypes):
+            content_object = content_data
+        else:
+            content_object = None
 
-        # Driver details ni qayta ishlash
-        driver_details_data = data.pop('driver_details', None)
-        driver_details = None
-        if driver_details_data:
-            cars_data = driver_details_data.pop('cars', [])
-            cars = [CarsTypes(**car) for car in cars_data] if cars_data else []
-            driver_details = DriverDetailsTypes(cars=cars, **driver_details_data)
-
-        # Content object ni qayta ishlash
-        content_object_data = data.pop('content_object', None)
-        content_object = None
-        if content_object_data:
-            # from_location va to_location ni AddressType ga o'tkazish
-            from_location_data = content_object_data.get('from_location', {})
-            to_location_data = content_object_data.get('to_location', {})
-
-            # LocationTypes ni yaratish
-            from_location_obj = None
-            to_location_obj = None
-
-            if from_location_data and isinstance(from_location_data, dict):
-                location_data = from_location_data.get('location')
-                if location_data:
-                    from_location_obj = AddressType(
-                        city=from_location_data.get('city', ''),
-                        location=LocationTypes(**location_data) if isinstance(location_data, dict) else None
-                    )
-
-            if to_location_data and isinstance(to_location_data, dict):
-                location_data = to_location_data.get('location')
-                if location_data:
-                    to_location_obj = AddressType(
-                        city=to_location_data.get('city', ''),
-                        location=LocationTypes(**location_data) if isinstance(location_data, dict) else None
-                    )
-
-            # created_at ni qayta ishlash
-            created_at_str = content_object_data.get('created_at', '')
-            created_at = None
-            if created_at_str:
-                try:
-                    if created_at_str.endswith('Z'):
-                        created_at = datetime.fromisoformat(
-                            created_at_str.replace('Z', '+00:00')
-                        )
-                    else:
-                        created_at = datetime.fromisoformat(created_at_str)
-                except (ValueError, AttributeError):
-                    created_at = datetime.now()
-            raw_start_time = content_object_data.get('start_time', '')
-
-            if raw_start_time:
-                dt = datetime.fromisoformat(raw_start_time.replace('Z', '+00:00'))
-                start_time = dt.strftime('%d.%m.%Y %H:%M')
-            else:
-                start_time = ''
-
-            # Boshqa field'larni olish
-            content_object = ContentObjectTypes(
-                type=content_object_data.get('type', ''),
-                id=content_object_data.get('id', 0),
-                from_location=from_location_data,  # Original JSON saqlanadi
-                to_location=to_location_data,  # Original JSON saqlanadi
-                price=content_object_data.get('price', ''),
-                commit=content_object_data.get('commit', ''),
-                start_time=start_time,
-                created_at=created_at or datetime.now(),
-                travel_class=content_object_data.get('travel_class'),
-                rate=float(content_object_data.get('rate', 5.0)),
-                passenger=int(content_object_data.get('passenger', 1)),
-                has_woman=bool(content_object_data.get('has_woman', False))
-            )
-
-        # Qolgan field'larni olish
-        status = data.pop('status', OrderStatus.CREATED.value)
-        order_type = data.pop('order_type', '')
-        content_type_name = data.pop('content_type_name', '')
-        order_id = data.pop('id', 0)
-        user = data.pop('user', 0)
-        driver = data.pop('driver', None)
+        # Driver details
+        driver_details = data.get('driver_details')
 
         return cls(
-            id=order_id,
-            user=user,
-            driver=driver,
+            id=data.get('id'),
+            user=data.get('user'),
             creator=creator,
-            driver_details=driver_details,
             content_object=content_object,
-            status=status,
-            order_type=order_type,
-            content_type_name=content_type_name,
-            **data
+            driver_details=driver_details,
+            status=data.get('status', OrderStatus.CREATED.value),
+            order_type=data.get('order_type', '')
         )
 
-    @property
-    def from_city(self) -> str:
-        """From location shahar nomini qaytarish"""
-        if self.content_object and isinstance(self.content_object.from_location, dict):
-            return self.content_object.from_location.get('city', '')
-        return ""
+    def to_dict(self) -> Dict[str, Any]:
+        """OrderTypes obyektini dictionary ga aylantirish"""
+        # Creator ni dictionary ga aylantirish
+        if isinstance(self.creator, PassengerTypes):
+            creator_dict = self.creator.to_dict()
+        elif isinstance(self.creator, dict):
+            creator_dict = self.creator
+        else:
+            creator_dict = None
 
-    @property
-    def to_city(self) -> str:
-        """To location shahar nomini qaytarish"""
-        if self.content_object and isinstance(self.content_object.to_location, dict):
-            return self.content_object.to_location.get('city', '')
-        return ""
+        # Content object ni dictionary ga aylantirish
+        if isinstance(self.content_object, ContentObjectTypes):
+            content_dict = self.content_object.to_dict()
+        elif isinstance(self.content_object, dict):
+            content_dict = self.content_object
+        else:
+            content_dict = None
 
-    @property
-    def formatted_price(self) -> str:
-        """Narxni formatlangan holda qaytarish"""
-        if self.content_object:
-            return f"{self.content_object.price} so'm"
-        return ""
+        # Driver details
+        driver_details_dict = self.driver_details
+        if hasattr(self.driver_details, 'to_dict'):
+            driver_details_dict = self.driver_details.to_dict()
 
-    @property
-    def status_enum(self) -> OrderStatus:
-        """Statusni Enum sifatida qaytarish"""
-        try:
-            return OrderStatus(self.status)
-        except ValueError:
-            return OrderStatus.CREATED
+        return {
+            'id': self.id,
+            'user': self.user,
+            'creator': creator_dict,
+            'content_object': content_dict,
+            'driver_details': driver_details_dict,
+            'status': self.status,
+            'order_type': self.order_type
+        }
+
+    def to_json(self) -> str:
+        """OrderTypes obyektini JSON string formatiga o'tkazish"""
+        return json.dumps(self.to_dict(), ensure_ascii=False, default=str)
+
 
 @dataclass
 class DriverInfo:
@@ -254,8 +223,24 @@ class DriverInfo:
                             data[field_name] = datetime.fromisoformat(value)
                     except ValueError:
                         data[field_name] = datetime.now()
+                elif not isinstance(value, datetime):
+                    data[field_name] = datetime.now()
 
         return cls(**data)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """DriverInfo obyektini dictionary ga aylantirish"""
+        result = {
+            'id': self.id,
+            'telegram_id': self.telegram_id,
+            'username': self.username,
+            'full_name': self.full_name,
+            'language': self.language,
+            'is_banned': self.is_banned,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+        return result
 
 
 @dataclass
@@ -264,123 +249,60 @@ class LatestCar:
     car_number: str
     car_model: str
 
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'LatestCar':
+        """Dictionary dan LatestCar obyektini yaratish"""
+        return cls(
+            car_class=data.get('car_class', ''),
+            car_number=data.get('car_number', ''),
+            car_model=data.get('car_model', '')
+        )
+
+    def to_dict(self) -> Dict[str, Any]:
+        """LatestCar obyektini dictionary ga aylantirish"""
+        return {
+            'car_class': self.car_class,
+            'car_number': self.car_number,
+            'car_model': self.car_model
+        }
+
 
 class DriverStatus(str, Enum):
     ONLINE = "online"
     OFFLINE = "offline"
 
 
+# Umumiy funksiya - har qanday dataclass uchun
+def dict_to_dataclass(data: Dict[str, Any], target_class) -> Any:
+    """
+    Dictionary ni ma'lum bir dataclass ga aylantirish
 
-@dataclass
-class DriverItem:
-    id: int
-    telegram_id: int
-    from_location: str
-    to_location: str
-    language: str
-    status: str
-    status_display: str
-    amount: float
-    cars_count: int
-    driver_info: DriverInfo
-    latest_car: LatestCar
-    created_at: datetime
+    Args:
+        data: Konvert qilinadigan dictionary
+        target_class: Nisbatan konvert qilinadigan dataclass
 
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'DriverItem':
-        """Dictionary dan DriverItem obyektini yaratish"""
-        data = data.copy()
+    Returns:
+        target_class: Konvert qilingan obyekt
+    """
+    if not hasattr(target_class, 'from_dict'):
+        raise ValueError(f"{target_class.__name__} classida from_dict metodi mavjud emas")
 
-        # Nested obyektlarni yaratish
-        driver_info_data = data.pop('driver_info', {})
-        driver_info = DriverInfo.from_dict(driver_info_data) if driver_info_data else None
-
-        latest_car_data = data.pop('latest_car', {})
-        latest_car = LatestCar(**latest_car_data) if latest_car_data else None
-
-        # Datetime field'larini konvert qilish
-        if 'created_at' in data:
-            value = data['created_at']
-            if isinstance(value, str):
-                try:
-                    if value.endswith('Z'):
-                        data['created_at'] = datetime.fromisoformat(
-                            value.replace('Z', '+00:00')
-                        )
-                    else:
-                        data['created_at'] = datetime.fromisoformat(value)
-                except ValueError:
-                    data['created_at'] = datetime.now()
-
-        return cls(
-            driver_info=driver_info,
-            latest_car=latest_car,
-            **data
-        )
-
-    @property
-    def is_online(self) -> bool:
-        """Driver online holatda ekanligini tekshirish"""
-        return self.status == DriverStatus.ONLINE.value
-
-    @property
-    def formatted_amount(self) -> str:
-        """Summani formatlangan holda qaytarish"""
-        return f"{self.amount:,.0f}".replace(",", " ")
-
-    @property
-    def car_info(self) -> str:
-        """Mashina haqida ma'lumot"""
-        if self.latest_car:
-            return f"{self.latest_car.car_model} ({self.latest_car.car_number})"
-        return ""
+    return target_class.from_dict(data)
 
 
-@dataclass
-class DriversResponse:
-    count: int
-    next: Optional[str]
-    previous: Optional[str]
-    results: List[DriverItem]
+def dataclass_to_dict(obj: Any) -> Dict[str, Any]:
+    """
+    Dataclass obyektini dictionary ga aylantirish
 
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'DriversResponse':
-        """Dictionary dan DriversResponse obyektini yaratish"""
-        data = data.copy()
+    Args:
+        obj: Konvert qilinadigan dataclass obyekti
 
-        # Results listini yaratish
-        results_data = data.pop('results', [])
-        results = [DriverItem.from_dict(item) for item in results_data]
-
-        return cls(
-            results=results,
-            **data
-        )
-
-    def get_online_drivers(self) -> List[DriverItem]:
-        """Faqat online driverlarni qaytarish"""
-        return [driver for driver in self.results if driver.is_online]
-
-    def get_drivers_by_location(self, from_location: str, to_location: str) -> List[DriverItem]:
-        """Lokatsiyaga ko'ra driverlarni filter qilish"""
-        return [
-            driver for driver in self.results
-            if driver.from_location.lower() == from_location.lower()
-               and driver.to_location.lower() == to_location.lower()
-               and driver.is_online
-        ]
-
-    def get_driver_by_id(self, driver_id: int) -> Optional[DriverItem]:
-        """ID bo'yicha driverni topish"""
-        for driver in self.results:
-            if driver.id == driver_id:
-                return driver
-        return None
-
-    def get_driver_by_telegram_id(self, telegram_id: int) -> Optional[DriverItem]:
-        """Telegram ID bo'yicha driverni topish"""
-        for driver in self.results:
-            if driver.telegram_id == telegram_id:
-                return driver
-        return None
-
+    Returns:
+        Dict[str, Any]: Konvert qilingan dictionary
+    """
+    if hasattr(obj, 'to_dict'):
+        return obj.to_dict()
+    elif hasattr(obj, '__dict__'):
+        return obj.__dict__.copy()
+    else:
+        raise ValueError(f"Obyektni dictionary ga aylantirib bo'lmadi: {type(obj)}")

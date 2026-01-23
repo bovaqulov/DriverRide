@@ -60,7 +60,7 @@ def chat_inl(lang, order_id):
     keyword = kb(lang)
     frontend_url = settings.FRONTEND_URL
     url = f"{frontend_url}/chat/{order_id}/"
-    keyword.data("chat", "chat").row()
+    # keyword.data("chat", "chat").row()
     keyword.data("arrived", f"arrived_{order_id}")
     return keyword.inline()
 

@@ -3,10 +3,10 @@ from ..services.driver_service import DriverServiceAPI
 
 
 class OrderServiceAPI(BaseService):
-    async def get(self, order_id):
+    async def get_order(self, order_id):
         return await self._request(
             "GET",
-            f"/orders/{order_id}",
+            f"/orders/{order_id}/driver",
         )
 
     async def update_status(self, order_id, status):
