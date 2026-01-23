@@ -57,7 +57,7 @@ async def main_menu(
         reply_markup=main_menu_inl(lang, driver_status),
         balance=f"{int(driver.amount)}",
         status=t(driver_status, lang),
-        direction=f"{driver.from_location.get("translate", {}).get(lang)} → {driver.to_location.get("translate", {}).get(lang)}",
+        direction=f"{driver.from_location.get('translate', {}).get(lang)} → {driver.to_location.get('translate', {}).get(lang)}",
         car_model=f"{driver.cars[0].car_model}",
         tariff=f"{driver.cars[0].tariff.translate[lang]}",
     )
