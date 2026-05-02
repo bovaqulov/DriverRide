@@ -1,12 +1,12 @@
-from application.bot_app.handler import UltraHandler
-from application.bot_app.keyboards.inline import back_inl
-from application.core import bot, t, logger
-from application.services.driver_service import DriverServiceAPI
+from app.bot_app.handler import UltraHandler
+from app.bot_app.keyboards.inline import back_inl
+from app.core import bot, t, logger
+from app.services import driver_api
 
 
 @bot.shipping_query_handler(func=lambda query: True)
 async def shipping(shipping_query):
-    print(shipping_query)
+    logger.debug(f"shipping_query: {shipping_query}")
     await bot.answer_shipping_query(shipping_query.id, ok=True,
                               error_message='Oh, seems like our Dog couriers are having a lunch right now. Try again later!')
 
@@ -40,9 +40,7 @@ async def got_payment(message):
                 amount = float(payment_info.total_amount) / 100 # Telegram amount ni minor unitlarda yuboradi
 
                 # DriverServiceAPI orqali balans qo'shish
-                driver_service = DriverServiceAPI()
-
-                result = await driver_service.add_balance_by_telegram_id(
+                result = await driver_api.add_balance_by_telegram_id(
                     telegram_id=driver_telegram_id,
                     amount=amount,
                     reason=f"Telegram payment: {payment_info.telegram_payment_charge_id}"

@@ -4,11 +4,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from application.core.config import settings
-from application.core.log import logger
-from application.database.cache import cache
-from application.core.i18n import init_translations
-from application.api.routes import router
+from app.core.config import settings
+from app.core.log import logger
+from app.database.cache import cache
+from app.core.i18n import init_translations
+from app.api.routes import router
 
 
 @asynccontextmanager
@@ -25,7 +25,7 @@ async def lifespan(app: FastAPI):
         await init_translations(cache.client)
 
         # Setup bot handlers
-        from application.bot_app.handler import setup_handlers
+        from app.bot_app.handler import setup_handlers
         await setup_handlers()
         logger.info("✅ Application started successfully")
 

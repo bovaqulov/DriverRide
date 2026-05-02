@@ -17,8 +17,7 @@ from .decorator import (
 from .payment import *
 from .middlewares import *
 from .states import *
-from .commands import *
-from .callbacks import *
+from .handlers import *
 
 # Register all handlers
 async def setup_handlers():

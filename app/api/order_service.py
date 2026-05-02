@@ -5,7 +5,7 @@ from typing import List
 from dataclasses import dataclass
 
 from .api_types import OrderTypes, OrderStatus, PassengerTypes
-from ..bot_app.keyboards.inline import confirm_order_inl, finish_inl
+from ..bot_app.keyboards.inline import confirm_order_inl
 from ..core.i18n import t
 from ..core.bot import bot
 from ..services import TelegramUserServiceAPI
@@ -167,14 +167,6 @@ class OrderResponse:
                 for driver in drivers:
                     await self._passenger_create(driver, order)
 
-            if order.status == OrderStatus.STARTED.value:
-                await self._ensure_queue_started()
-                lang = await TelegramUserServiceAPI().get_lang(order.driver_details.get("telegram_id"))
-                return await bot.send_message(
-                    order.driver_details.get("telegram_id"),
-                    t("safe_trip", lang),
-                    reply_markup=finish_inl(lang, order.id)
-                )
         except Exception as e:
             print(f"Error in OrderResponse.control: {e}")
 

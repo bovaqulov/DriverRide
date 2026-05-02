@@ -1,5 +1,5 @@
 """
-Driver Bot - Telegram Bot Application
+G'oz Driver Bot - Telegram Bot Application
 """
 
 __version__ = "1.0.0"

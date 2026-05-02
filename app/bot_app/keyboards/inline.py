@@ -1,17 +1,12 @@
 from ..keyboards.base import kb
-from ...core.config import settings
 
 
 def main_menu_inl(lang, status="online"):
     keyword = kb(lang)
-
-    keyword.data(status, status).row()
-    keyword.data("settings", "settings")
     keyword.data("balance", "balance").row()
     keyword.data("help", "help").row()
-    # if status == "online":
-    #     keyword.data("active_orders", "active_orders").row()
     return keyword.inline()
+
 
 def balance_inl(lang, balance=True):
     keyword = kb(lang)
@@ -25,6 +20,7 @@ def register_driver_inl(lang):
     keyword = kb(lang)
     keyword.url("register", "https://t.me/gozdekyurbot").row()
     return keyword.inline()
+
 
 def choice_balance_inl(lang):
     keyword = kb(lang)
@@ -42,12 +38,6 @@ def payment_inl(lang):
     keyword.data("back", "back_top").row()
     return keyword.inline()
 
-def settings_inl(lang):
-    keyword = kb(lang)
-    keyword.data("direction", "direction").row()
-    # keyword.data("phone_number", "phone_number").row()
-    keyword.data("back", "back").row()
-    return keyword.inline()
 
 def confirm_order_inl(lang, order_id, travel=True):
     keyword = kb(lang)
@@ -56,37 +46,14 @@ def confirm_order_inl(lang, order_id, travel=True):
     keyword.data("cancel", "cancel")
     return keyword.inline()
 
-def chat_inl(lang, order_id):
-    keyword = kb(lang)
-    frontend_url = settings.FRONTEND_URL
-    url = f"{frontend_url}/chat/{order_id}/"
-    # keyword.data("chat", "chat").row()
-    keyword.data("arrived", f"arrived_{order_id}")
-    return keyword.inline()
-
 
 def back_inl(lang):
     keyword = kb(lang)
     keyword.data("back", "back").row()
     return keyword.inline()
 
+
 def delete_inl(lang):
     keyword = kb(lang)
     keyword.data("delete_message", "delete").row()
     return keyword.inline()
-
-def picked_up_inl(lang, order_id):
-    keyword = kb(lang)
-    keyword.data("picked_up", f"picked_{order_id}").row()
-    return keyword.inline()
-
-
-def finish_inl(lang, order_id):
-    keyword = kb(lang)
-    keyword.data("finish", f"finished_{order_id}").row()
-    return keyword.inline()
-
-def phone_number_rb(lang: str):
-    keyboard = kb(lang)
-    keyboard.contact("get_phone_number")
-    return keyboard.reply()

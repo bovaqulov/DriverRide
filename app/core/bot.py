@@ -2,8 +2,8 @@
 from telebot import asyncio_filters
 from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_storage import StateMemoryStorage
-from application.core.config import settings
-from application.core.log import logger
+from app.core.config import settings
+from app.core.log import logger
 from telebot.states.asyncio.middleware import StateMiddleware
 
 

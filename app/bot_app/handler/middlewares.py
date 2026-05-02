@@ -4,8 +4,8 @@ from typing import Dict, Any, Union
 
 from telebot.asyncio_handler_backends import BaseMiddleware, CancelUpdate
 from telebot.types import Message, CallbackQuery
-from application.core import bot, logger
-from application.services import TelegramUserServiceAPI
+from app.core import bot, logger
+from app.services import TelegramUserServiceAPI
 
 
 class AllInOneMiddleware(BaseMiddleware):

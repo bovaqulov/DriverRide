@@ -4,8 +4,8 @@ import json
 from pathlib import Path
 from typing import Dict, Optional
 import redis.asyncio as redis
-from application.core.config import settings
-from application.core.log import logger
+from app.core.config import settings
+from app.core.log import logger
 
 # In-memory translation cache
 _translations: Dict[str, Dict[str, str]] = {}

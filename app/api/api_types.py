@@ -4,7 +4,7 @@ from typing import Optional, Dict, Any, Union
 from enum import Enum
 import json
 
-from application.services.route_service import RouteService
+from app.services.types import RouteService
 
 
 @dataclass
