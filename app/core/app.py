@@ -9,6 +9,7 @@ from app.core.log import logger
 from app.database.cache import cache
 from app.core.i18n import init_translations
 from app.api.routes import router
+from app.api.order_service import start_message_queue, stop_message_queue
 
 
 @asynccontextmanager
@@ -27,6 +28,9 @@ async def lifespan(app: FastAPI):
         # Setup bot handlers
         from app.bot_app.handler import setup_handlers
         await setup_handlers()
+
+        # Message queue ni ishga tushirish
+        await start_message_queue()
         logger.info("✅ Application started successfully")
 
         yield
@@ -38,6 +42,12 @@ async def lifespan(app: FastAPI):
     finally:
         # Shutdown
         logger.info("🛑 Shutting down application...")
+
+        await stop_message_queue()
+
+        # HTTP sessiyani yopish
+        from app.services.http_client import GlobalHTTPClient
+        await GlobalHTTPClient().close()
 
         # Disconnect Redis
         await cache.disconnect()
@@ -57,14 +67,14 @@ app = FastAPI(
 origins = [
     "http://localhost:8080",
     "http://localhost:8000",
-    "*"
+    settings.FRONTEND_URL,
 ]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=[o for o in origins if o],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 

@@ -39,12 +39,23 @@ class DriverServiceAPI(BaseService):
             logger.error(f"list_drivers: {e}")
             return {}
 
+    async def update_driver_status(self, driver_id: int, status: str) -> DriverService | None:
+        try:
+            data = await self._request('PATCH', f'/drivers/{driver_id}/update_status/', json={'status': status})
+            return None if 'error' in data else DriverService.model_validate(data)
+        except Exception as e:
+            logger.error(f"update_driver_status({driver_id}, {status}): {e}")
+            return None
+
     async def change_direction(self, driver_id: int, route_id: str) -> None:
         await self._request(
             'PATCH', f'/drivers/{driver_id}/update-route/', json={'route_id': route_id}
         )
 
     async def add_driver_balance(self, driver_id: int, amount: float, reason: str | None = None) -> dict | None:
+        # WARNING: two separate API calls — not atomic. If the PATCH succeeds but the POST
+        # already completed, a retry will create a duplicate transaction. The backend should
+        # expose a single atomic endpoint (e.g. POST /drivers/{id}/add-balance/) to fix this.
         try:
             tx = await self._request('POST', '/transactions/', json={'driver': driver_id, 'amount': amount})
             if 'error' in tx:

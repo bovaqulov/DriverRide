@@ -1,10 +1,13 @@
+import re
+import time
 from functools import wraps, lru_cache
+import asyncio
 from typing import Any, Optional, Union, Callable, List, Dict
 
-from telebot.handler_backends import State, StatesGroup
+from telebot.states import State, StatesGroup
 from telebot.states.asyncio import StateContext
 from telebot.types import (
-    CallbackQuery, InlineKeyboardMarkup, LabeledPrice, Message,
+    BotCommand, CallbackQuery, InlineKeyboardMarkup, LabeledPrice, Message,
     ReplyKeyboardMarkup,
 )
 
@@ -16,6 +19,24 @@ from ...services import user_api, driver_api
 from ...services.user_service import UserModel
 
 ADMINS: List[int] = []
+
+
+def async_lru_cache(maxsize: int = 128):
+    """Async-compatible LRU cache decorator."""
+    def decorator(func):
+        cache: Dict[Any, Any] = {}
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            key = (args, tuple(sorted(kwargs.items())))
+            if key not in cache:
+                if len(cache) >= maxsize:
+                    cache.pop(next(iter(cache)))
+                cache[key] = await func(*args, **kwargs)
+            return cache[key]
+        wrapper.cache_clear = lambda: cache.clear()
+        return wrapper
+    return decorator
+
 
 
 # ==================== STATE CLASSES ====================
@@ -44,7 +65,6 @@ def throttle(seconds: int = 1):
         @wraps(func)
         async def wrapper(msg: Union[Message, CallbackQuery], *args, **kwargs):
             user_id = msg.from_user.id
-            import time
             now = time.time()
             if user_id in last_called and now - last_called[user_id] < seconds:
                 return None
@@ -114,7 +134,8 @@ class UltraHandler:
         try:
             return await bot.send_message(self.chat_id, final_text,
                                           reply_markup=reply_markup, parse_mode="MarkdownV2")
-        except Exception:
+        except Exception as e:
+            logger.warning(e)
             return await bot.send_message(self.chat_id, final_text, reply_markup=reply_markup)
 
     @error_handler(send_to_user=False)
@@ -322,7 +343,6 @@ class HandlerMaster:
             @error_handler()
             async def msg_handler(message: Message, state: StateContext, cfg=config):
                 if cfg['regex'] and message.text:
-                    import re
                     if not re.match(cfg['regex'], message.text):
                         return
                 await cfg['func'](message, state)
@@ -337,7 +357,6 @@ class HandlerMaster:
     @classmethod
     async def _register_bot_commands(cls):
         try:
-            from telebot.types import BotCommand
             commands_list = [
                 BotCommand(command=name, description=cfg['desc'])
                 for name, cfg in cls._commands.items()

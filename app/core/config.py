@@ -10,23 +10,22 @@ class Settings(BaseSettings):
 
     # App settings
     DEBUG: bool = True
-    HOST_DEMO: str = "0.0.0.0"
-    PORT_DEMO: int = 8000
 
     # Bot tokens
-    BOT_TOKEN_DEMO: str = "8310564947:AAFnJq3_jv3WQs0i087XzM-v7lt2JMAyl7M"
-    BOT_TOKEN_PROD: str
+    BOT_TOKEN: str = ""
+
+    # Product url
+    HOST: str = ""
+    PORT: int
 
     # Payment
-    BOT_PAYMENT_TOKEN_DEMO: str
-    BOT_PAYMENT_TOKEN_PROD: str
+    BOT_PAYMENT_TOKEN: str = ""
 
     # Frontend url
     FRONTEND_URL: str
 
     # Redis
-    REDIS_URL_DEMO: str = "redis://localhost:6379/0"
-    REDIS_URL_PROD: str = "redis://localhost:6379/1"
+    REDIS_URL: str = "redis://localhost:6379/1"
     REDIS_MAX_CONNECTIONS: int = 10
 
     # Localization
@@ -36,25 +35,13 @@ class Settings(BaseSettings):
     API_VERSION: str = "api/v1"
     AUTH_TOKEN: str
     API_HOST: str
-    API_PORT: str
-    API_HOST_PROD: str
 
     # Admin
     ADMIN_IDS: str = ""
 
-    WEBHOOK_URL_DEMO: str = "http://127.0.0.1:8000"
-    WEBHOOK_URL_PROD: str = "http://127.0.0.1:8000"
-
-
-    @property
-    def BOT_TOKEN(self) -> str:
-        """Get bot token based on DEBUG mode"""
-        return self.BOT_TOKEN_DEMO if self.DEBUG else self.BOT_TOKEN_PROD
-
-    @property
-    def REDIS_URL(self) -> str:
-        """Get Redis URL based on DEBUG mode"""
-        return self.REDIS_URL_DEMO if self.DEBUG else self.REDIS_URL_PROD
+    # webhook
+    WEBHOOK_URL: str = ""
+    WEBHOOK_SECRET: str = ""
 
     @property
     def SUPPORTED_LANGS(self) -> List[str]:
@@ -69,34 +56,13 @@ class Settings(BaseSettings):
         return [int(uid.strip()) for uid in self.ADMIN_IDS.split(',') if uid.strip()]
 
     @property
-    def WEBHOOK_URL(self) -> str:
-        """Get webhook url based on DEBUG mode"""
-        return self.WEBHOOK_URL_DEMO if self.DEBUG else self.WEBHOOK_URL_PROD
-
-    @property
-    def HOST(self):
-        """Get host based on DEBUG mode"""
-        return self.HOST_DEMO
-
-    @property
-    def PORT(self):
-        """Get port based on DEBUG mode"""
-        return self.PORT_DEMO
-
-    @property
     def MAIN_URL(self):
         """Get main url based on DEBUG mode"""
         if self.DEBUG:
             url = f"http://{self.API_HOST}:{self.API_PORT}"
         else:
-            url = f"https://{self.API_HOST_PROD}"
+            url = f"https://{self.API_HOST}"
         return url
-
-
-    @property
-    def BOT_PAYMENT_TOKEN(self):
-        """Get bot payment token based on DEBUG mode"""
-        return self.BOT_PAYMENT_TOKEN_PROD
 
     model_config = SettingsConfigDict(
         env_file=".env",

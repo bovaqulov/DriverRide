@@ -1,18 +1,23 @@
 from ..keyboards.base import kb
+from ...core.config import settings
 
 
-def main_menu_inl(lang, status="online"):
+def profile_inl(lang, status="offline"):
     keyword = kb(lang)
-    keyword.data("balance", "balance").row()
+    keyword.web_app("web_panel", settings.FRONTEND_URL).row()
+    if status == "offline":
+        keyword.data("go_online", "status_online").row()
+    elif status == "online":
+        keyword.data("go_offline", "status_offline").row()
+    # on_the_way: tizim o'rnatadi, haydovchi o'zgartira olmaydi
     keyword.data("help", "help").row()
     return keyword.inline()
 
 
-def balance_inl(lang, balance=True):
+def help_inl(lang):
     keyword = kb(lang)
     keyword.data("top_up_balance", "top_up_balance").row()
-    if balance:
-        keyword.data("back", "back").row()
+    keyword.data("back", "back").row()
     return keyword.inline()
 
 

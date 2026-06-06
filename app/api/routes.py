@@ -15,65 +15,54 @@ router = APIRouter()
 
 @router.get("/")
 async def root():
-    """Root endpoint."""
-    return {
-        "service": "Driver Bot API",
-        "version": "1.0.0",
-        "status": "running"
-    }
+    return {"service": "Driver Bot API", "version": "1.0.0", "status": "running"}
 
 
 @router.get("/health")
 async def health():
-    """Health check."""
     try:
         await cache.client.ping()
-        return {
-            "status": "healthy",
-            "redis": "connected"
-        }
+        return {"status": "healthy", "redis": "connected"}
     except Exception as e:
-        return {
-            "status": "unhealthy",
-            "error": str(e)
-        }, 503
+        return JSONResponse({"status": "unhealthy", "error": str(e)}, status_code=503)
 
 
 @router.get("/translate/{key}")
 async def translate(key: str, lang: str = "en"):
-    """Get translation."""
-    logger.info(f"Translating:  {key}")
-    return {
-        "key": key,
-        "lang": lang,
-        "value": t(key, lang)
-    }
+    return {"key": key, "lang": lang, "value": t(key, lang)}
 
 
 @router.post("/webhook")
 async def webhook(request: Request):
-    """ webhook endpoint."""
+    if settings.WEBHOOK_SECRET:
+        token = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
+        if token != settings.WEBHOOK_SECRET:
+            logger.warning(f"Webhook: invalid secret token, IP: {request.client.host}")
+            return JSONResponse({"detail": "Forbidden"}, status_code=403)
     try:
         update = await request.body()
         await bot.process_new_updates([Update.de_json(update.decode("utf-8"))])
+        return {"status": "ok"}
     except Exception as e:
+        logger.error(f"Webhook error: {e}")
         return {"status": "error", "error": str(e)}
 
 
 @router.get("/set-webhook")
-async def set_webhook(request: Request):
-    """Set webhook endpoint."""
+async def set_webhook():
     try:
         await bot.remove_webhook()
-        await bot.set_webhook(url=f"{settings.WEBHOOK_URL}/webhook")
+        kwargs = {"url": f"{settings.WEBHOOK_URL}/webhook"}
+        if settings.WEBHOOK_SECRET:
+            kwargs["secret_token"] = settings.WEBHOOK_SECRET
+        await bot.set_webhook(**kwargs)
         info = await bot.get_webhook_info()
-        return JSONResponse(content={"status": str(info)}, status_code=200)
+        return JSONResponse({"status": "success", "webhook_url": info.url})
     except Exception as e:
+        logger.error(f"set-webhook error: {e}")
         return {"status": "error", "error": str(e)}
+
 
 @router.post("/driver")
 async def travel_started(request: Request):
     return await OrderResponse(request).control()
-
-
-
