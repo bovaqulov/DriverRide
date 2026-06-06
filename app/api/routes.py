@@ -41,6 +41,7 @@ async def webhook(request: Request):
             return JSONResponse({"detail": "Forbidden"}, status_code=403)
     try:
         update = await request.body()
+        logger.info(f"Received webhook update from {update}")
         await bot.process_new_updates([Update.de_json(update.decode("utf-8"))])
         return {"status": "ok"}
     except Exception as e:
