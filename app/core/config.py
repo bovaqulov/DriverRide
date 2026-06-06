@@ -15,8 +15,8 @@ class Settings(BaseSettings):
     BOT_TOKEN: str = ""
 
     # Product url
-    HOST: str = ""
-    PORT: int
+    HOST: str = "0.0.0.0"
+    PORT: int = 8000
 
     # Payment
     BOT_PAYMENT_TOKEN: str = ""
@@ -59,7 +59,7 @@ class Settings(BaseSettings):
     def MAIN_URL(self):
         """Get main url based on DEBUG mode"""
         if self.DEBUG:
-            url = f"http://{self.API_HOST}:{self.API_PORT}"
+            url = f"http://{self.API_HOST}:{self.PORT}"
         else:
             url = f"https://{self.API_HOST}"
         return url
