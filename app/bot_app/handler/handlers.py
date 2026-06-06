@@ -67,19 +67,22 @@ async def _render_profile(h: UltraHandler, send: bool = False):
 
 @cmd("start", "Restart Bot")
 async def start_handler(msg: Union[types.Message, types.CallbackQuery], state: StateContext):
-    h = UltraHandler(msg, state)
-    if await h.get_user() is None:
-        lang_code = (msg.from_user.language_code or "uz").split("-")[0]
-        if lang_code not in ("uz", "ru", "en"):
-            lang_code = "uz"
-        await user_api.create_user({
-            "telegram_id": msg.from_user.id,
-            "full_name": msg.from_user.full_name,
-            "username": msg.from_user.username,
-            "language": lang_code,
-        })
-    await state.delete()
-    return await _render_profile(h, send=True)
+    try:
+        h = UltraHandler(msg, state)
+        if await h.get_user() is None:
+            lang_code = (msg.from_user.language_code or "uz").split("-")[0]
+            if lang_code not in ("uz", "ru", "en"):
+                lang_code = "uz"
+            await user_api.create_user({
+                "telegram_id": msg.from_user.id,
+                "full_name": msg.from_user.full_name,
+                "username": msg.from_user.username,
+                "language": lang_code,
+            })
+        await state.delete()
+        return await _render_profile(h, send=True)
+    except Exception as e:
+        logger.error(f"start_handler error: {e}")
 
 
 # ── Profil ────────────────────────────────────────────────────────────────────
