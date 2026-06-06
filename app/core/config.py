@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     FRONTEND_URL: str
 
     # Redis
-    REDIS_URL: str = "redis://localhost:6379/1"
+    REDIS_DB: str = "redis://localhost:6379/1"
     REDIS_MAX_CONNECTIONS: int = 10
 
     # Localization

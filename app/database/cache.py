@@ -15,7 +15,7 @@ class RedisClient:
         """Connect to Redis with connection pool"""
         try:
             self._client = redis.from_url(
-                settings.REDIS_URL,
+                settings.REDIS_DB,
                 decode_responses=True,
                 max_connections=settings.REDIS_MAX_CONNECTIONS,
                 socket_connect_timeout=5,
@@ -25,7 +25,7 @@ class RedisClient:
 
             # Test connection
             await self._client.ping()
-            logger.info(f"✅ Redis connected: {settings.REDIS_URL}")
+            logger.info(f"✅ Redis connected: {settings.REDIS_DB}")
 
         except redis.ConnectionError as e:
             logger.error(f"❌ Redis connection failed: {e}")
