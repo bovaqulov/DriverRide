@@ -1,6 +1,7 @@
 # application/app.py
 
-from fastapi import FastAPI
+import time
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
@@ -77,6 +78,22 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type", "Authorization"],
 )
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start = time.time()
+    ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown")
+    logger.info(f"→ {request.method} {request.url.path} | IP: {ip}")
+    try:
+        response = await call_next(request)
+        duration = (time.time() - start) * 1000
+        logger.info(f"← {request.method} {request.url.path} | {response.status_code} | {duration:.1f}ms")
+        return response
+    except Exception as e:
+        duration = (time.time() - start) * 1000
+        logger.error(f"✗ {request.method} {request.url.path} | ERROR | {duration:.1f}ms | {e}")
+        raise
 
 
 app.include_router(router)

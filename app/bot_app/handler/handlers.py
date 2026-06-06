@@ -69,6 +69,8 @@ async def _render_profile(h: UltraHandler, send: bool = False):
 async def start_handler(msg: Union[types.Message, types.CallbackQuery], state: StateContext):
     try:
         h = UltraHandler(msg, state)
+        user_tag = f"@{msg.from_user.username}" if msg.from_user.username else f"id={msg.from_user.id}"
+        logger.info(f"[/start] {user_tag}")
         if await h.get_user() is None:
             lang_code = (msg.from_user.language_code or "uz").split("-")[0]
             if lang_code not in ("uz", "ru", "en"):
@@ -79,6 +81,7 @@ async def start_handler(msg: Union[types.Message, types.CallbackQuery], state: S
                 "username": msg.from_user.username,
                 "language": lang_code,
             })
+            logger.info(f"[/start] new user created: {user_tag} lang={lang_code}")
         await state.delete()
         return await _render_profile(h, send=True)
     except Exception as e:
@@ -99,10 +102,13 @@ async def profile_callback(call: types.CallbackQuery, state: StateContext):
 async def status_online_callback(call: types.CallbackQuery, state: StateContext):
     h = UltraHandler(call, state)
     lang = await h.lang()
+    logger.info(f"[status_online] user_id={call.from_user.id}")
     driver = await driver_api.get_driver_by_telegram_id(call.from_user.id)
     if not driver:
+        logger.warning(f"[status_online] driver not found: user_id={call.from_user.id}")
         return await h.edit("not_driver", reply_markup=register_driver_inl(lang))
     await driver_api.update_driver_status(driver.id, "online")
+    logger.info(f"[status_online] driver_id={driver.id} → online")
     await h.answer("status_changed_online")
     return await _render_profile(h, send=False)
 
@@ -113,14 +119,18 @@ async def status_online_callback(call: types.CallbackQuery, state: StateContext)
 async def status_offline_callback(call: types.CallbackQuery, state: StateContext):
     h = UltraHandler(call, state)
     lang = await h.lang()
+    logger.info(f"[status_offline] user_id={call.from_user.id}")
     driver = await driver_api.get_driver_by_telegram_id(call.from_user.id)
     if not driver:
+        logger.warning(f"[status_offline] driver not found: user_id={call.from_user.id}")
         return await h.edit("not_driver", reply_markup=register_driver_inl(lang))
 
     if await order_api.has_active_orders(driver.id):
+        logger.info(f"[status_offline] blocked — active orders exist: driver_id={driver.id}")
         return await h.answer("has_active_order", show_alert=True)
 
     await driver_api.update_driver_status(driver.id, "offline")
+    logger.info(f"[status_offline] driver_id={driver.id} → offline")
     await h.answer("status_changed_offline")
     return await _render_profile(h, send=False)
 
@@ -160,6 +170,7 @@ async def accept_order_callback(call: types.CallbackQuery, state: StateContext):
     h = UltraHandler(call, state)
     lang = await h.lang()
     _, order_type, order_id = call.data.split('_')
+    logger.info(f"[accept_order] user_id={call.from_user.id} order_id={order_id} type={order_type}")
     try:
         order_info = OrderTypes.from_dict(await order_api.get_order(int(order_id)))
         text = _build_order_text(lang, order_info, order_info.creator.phone, is_travel=order_type == "travel")
@@ -167,14 +178,16 @@ async def accept_order_callback(call: types.CallbackQuery, state: StateContext):
         if order_info.status == "created" and order_info.driver_details is None:
             assigned = await order_api.add_new_driver(order_id, call.from_user.id)
             if assigned.get("status") == "assigned":
+                logger.info(f"[accept_order] ASSIGNED order_id={order_id} → driver user_id={call.from_user.id}")
                 loc = order_info.content_object.from_location.get("location", {})
                 if loc.get("latitude") and loc.get("longitude"):
                     await h.location(loc["latitude"], loc["longitude"])
                 return await h.edit(text, reply_markup=delete_inl(lang), translate=False)
 
+        logger.info(f"[accept_order] order_id={order_id} already taken, status={order_info.status}")
         return await h.edit("order_taken_by_other", reply_markup=delete_inl(lang))
     except Exception as e:
-        logger.error(f"accept_order_callback: {e}")
+        logger.error(f"accept_order_callback: order_id={order_id} user_id={call.from_user.id} error={e}")
 
 
 def _build_order_text(lang: str, order: OrderTypes, use_phone: str, is_travel: bool = False) -> str:

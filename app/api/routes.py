@@ -37,15 +37,23 @@ async def webhook(request: Request):
     if settings.WEBHOOK_SECRET:
         token = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
         if token != settings.WEBHOOK_SECRET:
-            logger.warning(f"Webhook: invalid secret token, IP: {request.client.host}")
+            ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "?")
+            logger.warning(f"[webhook] invalid secret token | IP={ip}")
             return JSONResponse({"detail": "Forbidden"}, status_code=403)
     try:
-        update = await request.body()
-        logger.info(f"Received webhook update from {update}")
-        await bot.process_new_updates([Update.de_json(update.decode("utf-8"))])
+        body = await request.body()
+        update_obj = Update.de_json(body.decode("utf-8"))
+        update_id = getattr(update_obj, "update_id", "?")
+        update_type = (
+            "message" if update_obj.message
+            else "callback_query" if update_obj.callback_query
+            else "other"
+        )
+        logger.info(f"[webhook] update_id={update_id} type={update_type}")
+        await bot.process_new_updates([update_obj])
         return {"status": "ok"}
     except Exception as e:
-        logger.error(f"Webhook error: {e}")
+        logger.error(f"[webhook] processing error: {e}")
         return {"status": "error", "error": str(e)}
 
 
@@ -66,4 +74,8 @@ async def set_webhook():
 
 @router.post("/driver")
 async def travel_started(request: Request):
-    return await OrderResponse(request).control()
+    ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "?")
+    logger.info(f"[/driver] incoming order request | IP={ip}")
+    result = await OrderResponse(request).control()
+    logger.info(f"[/driver] order processed")
+    return result
