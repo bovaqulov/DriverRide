@@ -15,7 +15,6 @@ class Settings(BaseSettings):
     BOT_TOKEN: str = ""
 
     # Product url
-    HOST: str = "0.0.0.0"
     PORT: int = 8000
 
     # Payment
