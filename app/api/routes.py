@@ -32,7 +32,7 @@ async def translate(key: str, lang: str = "en"):
     return {"key": key, "lang": lang, "value": t(key, lang)}
 
 
-@router.post("/webhook/")
+@router.post("/webhook")
 async def webhook(request: Request):
     if settings.WEBHOOK_SECRET:
         token = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
