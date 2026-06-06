@@ -68,6 +68,7 @@ origins = [
     "http://localhost:8080",
     "http://localhost:8000",
     settings.FRONTEND_URL,
+    settings.WEBHOOK_URL
 ]
 app.add_middleware(
     CORSMiddleware,
